@@ -1,6 +1,9 @@
 name: "Jira ticket creator"
 description: "Creater a Jira ticket"
 inputs:
+  github_token:
+    description: "GitHub token"
+    required: true
   jira_url:
     description: "URL of Jira instance"
     required: true

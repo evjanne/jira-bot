@@ -16,6 +16,8 @@ async function run() {
     const { owner, repo } = context.repo;
     const release = await octokit.repos.getReleaseByTag({ owner, repo, tag });
     console.log(release);
+    const tags = await octokit.paginate(octokit.repos.listTags.endpoint.parse({ owner, repo }));
+    console.log(tags);
 }
 
 run();
