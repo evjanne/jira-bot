@@ -17,7 +17,8 @@ async function run() {
     const release = await octokit.repos.getReleaseByTag({ owner, repo, tag });
     console.log(release);
     const tags = await octokit.paginate(octokit.repos.listTags.endpoint.merge({ owner, repo }));
-    console.log(tags);
+    const tagData = tags.filter((t) => t.name === tag)[0];
+    console.log(tagData);
 }
 
 run();
