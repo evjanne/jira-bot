@@ -10,4 +10,6 @@ inputs:
   password:
     description: "Account password"
     required: true
-
+runs:
+  using: "node12"
+  main: "dist/index.js"
