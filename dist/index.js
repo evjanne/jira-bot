@@ -10,7 +10,6 @@ const { getOctokit, context } = __webpack_require__(438);
 
 async function run() {
     const tag = core.getInput("tag") || context.payload.inputs.tag;
-    const payload = context.payload;
     const token = core.getInput("github_token", { required: true });
     const octokit = getOctokit(token);
     const { owner, repo } = context.repo;
@@ -23,6 +22,9 @@ async function run() {
     const searchResults = await octokit.search.issuesAndPullRequests({ q });
     const pr = searchResults.data.items[0];
     console.log(pr);
+    const pull_number = pr.number;
+    const reviews = octokit.pulls.listReviews({ owner, repo, pull_number });
+    console.log(reviews);
 }
 
 run();
