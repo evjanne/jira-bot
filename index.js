@@ -16,7 +16,7 @@ async function run() {
     const pr = searchResults.data.items[0];
     console.log(pr);
     const pull_number = pr.number;
-    const reviews = octokit.pulls.listReviews({ owner, repo, pull_number });
+    const reviews = await octokit.pulls.listReviews({ owner, repo, pull_number });
     console.log(reviews);
 }
 
