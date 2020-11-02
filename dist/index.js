@@ -9,8 +9,13 @@ const core = __webpack_require__(186);
 const { getOctokit, context } = __webpack_require__(438);
 
 async function run() {
+    const tag = core.getInput("tag") || context.payload.inputs.tag;
     const payload = context.payload;
-    console.log(payload);
+    const token = core.getInput("github_token", { required: true });
+    const octokit = getOctokit(token);
+    const { owner, repo } = context.repo;
+    const release = await octokit.repos.getReleaseByTag({ owner, repo, tag });
+    console.log(release);
 }
 
 run();
