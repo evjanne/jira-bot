@@ -1,0 +1,15 @@
+name: Create Jira ticket
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag'
+        required: true
+
+jobs:
+  create_ticket:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create ticket
+        uses: ./

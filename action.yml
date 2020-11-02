@@ -1,0 +1,13 @@
+name: "Jira ticket creator"
+description: "Creater a Jira ticket"
+inputs:
+  jira_url:
+    description: "URL of Jira instance"
+    required: true
+  account:
+    description: "Jira account"
+    required: true
+  password:
+    description: "Account password"
+    required: true
+
