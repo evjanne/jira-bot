@@ -20,7 +20,8 @@ async function run() {
     const releaseTag = tags.filter((t) => t.name === tag)[0];
     console.log(releaseTag);
     const q = `SHA:${releaseTag.commit.sha}`;
-    const pr = await octokit.search.issuesAndPullRequests({ q });
+    const searchResults = await octokit.search.issuesAndPullRequests({ q });
+    const pr = searchResults.data.items[0];
     console.log(pr);
 }
 
