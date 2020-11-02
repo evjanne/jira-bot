@@ -11,7 +11,7 @@ async function run() {
     console.log(release);
     const tags = await octokit.paginate(octokit.repos.listTags.endpoint.merge({ owner, repo }));
     const releaseTag = tags.filter((t) => t.name === tag)[0];
-    console.log(tagData);
+    console.log(releaseTag);
     const q = `SHA:${releaseTag.commit.sha}`;
     const pr = await octokit.search.issuesAndPullRequests({ q });
     console.log(pr);
