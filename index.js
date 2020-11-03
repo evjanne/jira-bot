@@ -28,7 +28,7 @@ function buildTicketBody(pr, release, reviews) {
   let body = release.data.body;
   body += `\n*Author*\n[${pr.user.login}|${pr.user.url}]`;
   const approvedReviews = reviews.data.filter(
-    (review) => review.data === "APPROVED"
+    (review) => review.state === "APPROVED"
   );
   const uniqueReviews = [
     ...new Map(
