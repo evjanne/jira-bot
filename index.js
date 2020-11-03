@@ -13,7 +13,7 @@ async function run() {
   const ticket_descriptor = core.getInput("ticket_descriptor");
   const pr = await getPR();
   const reviews = await getReviews(pr);
-  reviews.data[0].user.id;
+  console.log(reviews);
   const release = await getRelease();
   const body = buildTicketBody(pr, release, reviews);
   console.log(body);
