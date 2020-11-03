@@ -18,6 +18,7 @@ exports.getPR = async function () {
 exports.getReviews = async function (pr) {
     const token = core.getInput("github_token", { required: true });
     const octokit = getOctokit(token);
+    const { owner, repo } = context.repo;
     const pull_number = pr.number;
     const reviews = await octokit.pulls.listReviews({ owner, repo, pull_number });
     return reviews;
