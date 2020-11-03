@@ -16,3 +16,4 @@ jobs:
         uses: ./
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          ticket_prefix: EVI
