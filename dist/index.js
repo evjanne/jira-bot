@@ -23,7 +23,7 @@ async function run() {
   reviews.data[0].user.id;
   const release = await getRelease();
   const body = buildTicketBody(pr, release, reviews);
-  console.login(body);
+  console.log(body);
   //const ticket = await createTicket(summary, body);
   const ticket = { key: "EVI-12345" };
   await appendReleaseBody(
