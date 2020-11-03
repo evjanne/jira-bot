@@ -6,33 +6,12 @@ require('./sourcemap-register.js');module.exports =
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
 
 const core = __webpack_require__(186);
-const { getOctokit, context } = __webpack_require__(438);
+const { getPR, getReviews} = __webpack_require__(337);
 
 async function run() {
-    const tag = core.getInput("tag") || context.payload.inputs.tag;
-    const token = core.getInput("github_token", { required: true });
-    const octokit = getOctokit(token);
-    const { owner, repo } = context.repo;
-    const release = await octokit.repos.getReleaseByTag({ owner, repo, tag });
-    console.log(release);
-    const tags = await octokit.paginate(octokit.repos.listTags.endpoint.merge({ owner, repo }));
-    const releaseTag = tags.filter((t) => t.name === tag)[0];
-    console.log(releaseTag);
-    const q = `SHA:${releaseTag.commit.sha}`;
-    const searchResults = await octokit.search.issuesAndPullRequests({ q });
-    const pr = searchResults.data.items[0];
-    console.log(pr);
-    const pull_number = pr.number;
-    const reviews = await octokit.pulls.listReviews({ owner, repo, pull_number });
+    const pr = await getPR();
+    const reviews = await getReviews(pr);
     console.log(reviews);
-    parseTicketNumber(pr.title);
-}
-
-function parseTicketNumber(title) {
-    const ticketPrefix = core.getInput("ticket_prefix", { required: true });
-    const re = new RegExp(`\\\$${ticketPrefix}\\-\\d+`);
-    const result = title.match(re);
-    console.log(result);
 }
 
 run();
@@ -5870,6 +5849,36 @@ function wrappy (fn, cb) {
   }
 }
 
+
+/***/ }),
+
+/***/ 337:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+const core = __webpack_require__(186);
+const { getOctokit, context } = __webpack_require__(438);
+
+exports.getPR = async function () {
+    const tag = core.getInput("tag") || context.payload.inputs.tag;
+    const token = core.getInput("github_token", { required: true });
+    const octokit = getOctokit(token);
+    const { owner, repo } = context.repo;
+    const release = await octokit.repos.getReleaseByTag({ owner, repo, tag });
+    const tags = await octokit.paginate(octokit.repos.listTags.endpoint.merge({ owner, repo }));
+    const releaseTag = tags.filter((t) => t.name === tag)[0];
+    const q = `SHA:${releaseTag.commit.sha}`;
+    const searchResults = await octokit.search.issuesAndPullRequests({ q });
+    const pr = searchResults.data.items[0];
+    return pr;
+}
+
+exports.getReviews = async function (pr) {
+    const token = core.getInput("github_token", { required: true });
+    const octokit = getOctokit(token);
+    const pull_number = pr.number;
+    const reviews = await octokit.pulls.listReviews({ owner, repo, pull_number });
+    return reviews;
+}
 
 /***/ }),
 
