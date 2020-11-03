@@ -4,18 +4,26 @@ inputs:
   github_token:
     description: "GitHub token"
     required: true
-  jira_url:
-    description: "URL of Jira instance"
+  jira_host:
+    description: "Jira server"
     required: true
-  account:
+  jirar_username:
     description: "Jira account"
     required: true
-  password:
+  jira_password:
     description: "Account password"
     required: true
   ticket_prefix:
     description: "Jira ticket prefix"
     required: true
+  ticket_descriptor:
+    description: "Text before ticket link in release notes"
+    default: "Ticket"
+    required: false
+  configuration_file:
+    description: "Path for field mapping configuration"
+    default: ".github/jira-config.yml"
+    required: false
 runs:
   using: "node12"
   main: "dist/index.js"

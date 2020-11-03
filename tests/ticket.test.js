@@ -1,7 +1,7 @@
 jest.mock("@actions/github");
 
 const setInputs = require("./test-utils");
-const parseTicketNumber = require("../src/ticket");
+const { parseTicketNumber } = require("../src/ticket");
 
 beforeEach(() => {
   setInputs({
