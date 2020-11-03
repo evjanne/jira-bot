@@ -1,3 +1,3 @@
 # jira-bot
 
-Bot to create Jira tickets
+Bot to create Jira tickets.
