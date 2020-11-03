@@ -25,6 +25,14 @@ async function run() {
     const pull_number = pr.number;
     const reviews = await octokit.pulls.listReviews({ owner, repo, pull_number });
     console.log(reviews);
+    parseTicketNumber(pr.title);
+}
+
+function parseTicketNumber(title) {
+    const ticketPrefix = core.getInput("ticket_prefix", { required: true });
+    const re = new RegExp(`\\\$${ticketPrefix}\\-\\d+`);
+    const result = title.match(re);
+    console.log(result);
 }
 
 run();
