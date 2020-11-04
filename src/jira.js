@@ -62,6 +62,10 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
 exports.createTicket = async function (summary, description, linkedIssueKey) {
   const jira = getJiraClient();
   const issueData = exports.createIssueData(summary, description, linkedIssueKey);
-  const issue = await jira.addNewIssue(issueData);
+  try {
+    const issue = await jira.addNewIssue(issueData);
+  } catch (error) {
+    core.setFailed(error.message);
+  }
   return issue;
 };
