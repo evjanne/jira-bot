@@ -13,6 +13,7 @@ const {
   appendReleaseBody,
 } = __webpack_require__(6989);
 const { createTicket } = __webpack_require__(3845);
+const { parseTitle } = __webpack_require__(5574);
 
 async function run() {
   const jira_host = core.getInput("jira_host", { required: true });
@@ -23,7 +24,8 @@ async function run() {
   const release = await getRelease();
   const body = buildTicketBody(pr, release, reviews);
   console.log(body);
-  const ticket = await createTicket(summary, body);
+  const parsedTitle = parseTitle(release.data.name);
+  const ticket = await createTicket(parsedTitle.title, body, parsedTitle.ticket);
   console.log(ticket);
   await appendReleaseBody(
     `${ticket_descriptor}: [${ticket.key}](https://${jira_host}/browse/${ticket.key})`
@@ -61218,12 +61220,30 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
   return issueData;
 };
 
-exports.createTicket = async function (summary, description) {
+exports.createTicket = async function (summary, description, linkedIssueKey) {
   const jira = getJiraClient();
-  const issueData = exports.createIssueData(summary, description);
+  const issueData = exports.createIssueData(summary, description, linkedIssueKey);
   const issue = await jira.addNewIssue(issueData);
   return issue;
 };
+
+
+/***/ }),
+
+/***/ 5574:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+const core = __webpack_require__(2186);
+
+exports.parseTitle = function (title) {
+    const ticketPrefix = core.getInput("ticket_prefix", { required: true });
+    const re = new RegExp(`^(${ticketPrefix}\\-\\d+)(.*)$`);
+    const result = re.exec(title);
+    if (result) {
+        return {ticket: result[1], title: result[2].trim()};
+    }
+    return {title};
+ }
 
 
 /***/ }),

@@ -6,6 +6,7 @@ const {
   appendReleaseBody,
 } = require("./src/gh");
 const { createTicket } = require("./src/jira");
+const { parseTitle } = require("./src/ticket");
 
 async function run() {
   const jira_host = core.getInput("jira_host", { required: true });
@@ -16,7 +17,8 @@ async function run() {
   const release = await getRelease();
   const body = buildTicketBody(pr, release, reviews);
   console.log(body);
-  const ticket = await createTicket(summary, body);
+  const parsedTitle = parseTitle(release.data.name);
+  const ticket = await createTicket(parsedTitle.title, body, parsedTitle.ticket);
   console.log(ticket);
   await appendReleaseBody(
     `${ticket_descriptor}: [${ticket.key}](https://${jira_host}/browse/${ticket.key})`

@@ -59,9 +59,9 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
   return issueData;
 };
 
-exports.createTicket = async function (summary, description) {
+exports.createTicket = async function (summary, description, linkedIssueKey) {
   const jira = getJiraClient();
-  const issueData = exports.createIssueData(summary, description);
+  const issueData = exports.createIssueData(summary, description, linkedIssueKey);
   const issue = await jira.addNewIssue(issueData);
   return issue;
 };
