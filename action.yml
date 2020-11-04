@@ -7,7 +7,7 @@ inputs:
   jira_host:
     description: "Jira server"
     required: true
-  jirar_username:
+  jira_username:
     description: "Jira account"
     required: true
   jira_password:
