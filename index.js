@@ -1,5 +1,4 @@
 const core = require("@actions/core");
-const { context } = require("@actions/github");
 const {
   getPR,
   getReviews,
@@ -17,8 +16,7 @@ async function run() {
   const release = await getRelease();
   const body = buildTicketBody(pr, release, reviews);
   console.log(body);
-  //const ticket = await createTicket(summary, body);
-  const ticket = { key: "EVI-12345" };
+  const ticket = await createTicket(summary, body);
   await appendReleaseBody(
     `${ticket_descriptor}: [${ticket.key}](https://${jira_host}/browse/${ticket.key})`
   );
@@ -41,7 +39,5 @@ function buildTicketBody(pr, release, reviews) {
   }
   return body;
 }
-
-//TODO: Parse ticket number away from the title for Muha body
 
 run();

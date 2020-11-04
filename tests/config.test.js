@@ -12,8 +12,8 @@ test("read configuration", () => {
     expect(config).toEqual({
         project: '11212',
         issue_type: '50',
-        component: 'Netpvr:Viscurator',
-        custom_fields: {
+        fields: {
+          components: ['Netpvr:Viscurator'],
           customfield_10913: { id: '15862' },
           customfield_10898: { type: 'start_time' },
           customfield_10899: { type: 'end_time' },

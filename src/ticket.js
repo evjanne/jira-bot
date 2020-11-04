@@ -1,8 +1,11 @@
 const core = require("@actions/core");
 
-exports.parseTicketNumber = function (title) {
+exports.parseTitle = function (title) {
     const ticketPrefix = core.getInput("ticket_prefix", { required: true });
-    const re = new RegExp(`${ticketPrefix}\\-\\d+`);
+    const re = new RegExp(`^(${ticketPrefix}\\-\\d+)(.*)$`);
     const result = re.exec(title);
-    return result ? result[0] : null;
+    if (result) {
+        return {ticket: result[1], title: result[2].trim()};
+    }
+    return {title};
  }

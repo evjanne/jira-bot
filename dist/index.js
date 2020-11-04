@@ -6,7 +6,6 @@ require('./sourcemap-register.js');module.exports =
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
 
 const core = __webpack_require__(2186);
-const { context } = __webpack_require__(5438);
 const {
   getPR,
   getReviews,
@@ -24,8 +23,7 @@ async function run() {
   const release = await getRelease();
   const body = buildTicketBody(pr, release, reviews);
   console.log(body);
-  //const ticket = await createTicket(summary, body);
-  const ticket = { key: "EVI-12345" };
+  const ticket = await createTicket(summary, body);
   await appendReleaseBody(
     `${ticket_descriptor}: [${ticket.key}](https://${jira_host}/browse/${ticket.key})`
   );
@@ -48,8 +46,6 @@ function buildTicketBody(pr, release, reviews) {
   }
   return body;
 }
-
-//TODO: Parse ticket number away from the title for Muha body
 
 run();
 
@@ -61175,34 +61171,49 @@ function getJiraClient() {
     host: core.getInput("jira_host", { required: true }),
     username: core.getInput("jira_username", { required: true }),
     password: core.getInput("jira_password", { required: true }),
-    apiVersion: "3",
+    apiVersion: "2",
   });
 }
 
-exports.createIssueData = function (summary, description) {
+exports.createIssueData = function (summary, description, linkedIssueKey) {
   start_time = moment().format();
   const config = parseConfig();
-  const issueFields = {
+  const fields = {
     project: { id: config.project },
     issuetype: { id: config.issue_type },
     summary: summary,
     description: description,
   };
-  if (config.custom_fields) {
-    for (const [key, value] of Object.entries(config.custom_fields)) {
+  if (config.fields) {
+    for (const [key, value] of Object.entries(config.fields)) {
       if (value.type === "start_time") {
-        issueFields[key] = moment().format();
+        fields[key] = moment().format();
       } else if (value.type === "end_time") {
-        issueFields[key] = moment().add({ hour: 1 }).format();
+        fields[key] = moment().add({ hour: 1 }).format();
       } else {
-        issueFields[key] = value;
+        fields[key] = value;
       }
     }
   }
-  const issueData = {
-      update: {},
-      fields: issueFields
+  const update = {};
+  if (linkedIssueKey && config.issue_link_type) {
+    update["issuelinks"] = [
+      {
+        add: {
+          type: {
+            name: config.issue_link_type,
+          },
+          inwardIssue: {
+            key: linkedIssueKey,
+          },
+        },
+      },
+    ];
   }
+  const issueData = {
+    update,
+    fields,
+  };
   return issueData;
 };
 

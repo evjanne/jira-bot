@@ -1,7 +1,7 @@
 jest.mock("@actions/github");
 
 const setInputs = require("./test-utils");
-const { parseTicketNumber } = require("../src/ticket");
+const { parseTitle } = require("../src/ticket");
 
 beforeEach(() => {
   setInputs({
@@ -10,11 +10,11 @@ beforeEach(() => {
 });
 
 test("parse ticket number", () => {
-  const result = parseTicketNumber("EVI-12345 Test PR");
-  expect(result).toEqual("EVI-12345");
+  const result = parseTitle("EVI-12345 Test PR");
+  expect(result).toEqual({ticket: "EVI-12345", title: "Test PR"});
 });
 
 test("no ticket number", () => {
-  const result = parseTicketNumber("This is just test PR");
-  expect(result).toEqual(null);
+  const result = parseTitle("This is just test PR");
+  expect(result).toEqual({title: "This is just test PR"});
 });

@@ -18,3 +18,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           ticket_prefix: EVI
           jira_host: atlas.elisa.fi/jira
+          ticket_descriptor: "Muha"

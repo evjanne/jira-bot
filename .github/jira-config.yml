@@ -1,13 +1,14 @@
-project: "11212"        # SoSe Elisa Viihde
-issue_type: "50"        # Release
-component: "Netpvr:Viscurator"
-
-custom_fields:
-  customfield_10913:    # Change Category "Standard"
+project: "11212"          # SoSe Elisa Viihde
+issue_type: "50"          # Release
+issue_link_type: "Cause"
+fields:
+  components:
+    - "Netpvr:Viscurator"
+  customfield_10913:      # Change Category "Standard"
     id: "15862"
-  customfield_10898:    # Planned start time
+  customfield_10898:      # Planned start time
     type: start_time
-  customfield_10899:    # Planned end time
+  customfield_10899:      # Planned end time
     type: end_time
-  customfield_11581:    # Release status "Approved"
+  customfield_11581:      # Release status "Approved"
     id: "16820"
