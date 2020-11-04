@@ -61224,11 +61224,11 @@ exports.createTicket = async function (summary, description, linkedIssueKey) {
   const jira = getJiraClient();
   const issueData = exports.createIssueData(summary, description, linkedIssueKey);
   try {
-    const issue = await jira.addNewIssue(issueData);
+    return await jira.addNewIssue(issueData);
   } catch (error) {
     core.setFailed(error.message);
+    process.exit(1);
   }
-  return issue;
 };
 
 
