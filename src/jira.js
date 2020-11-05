@@ -59,9 +59,10 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
   return issueData;
 };
 
-exports.createTicket = async function (summary, description, linkedIssueKey) {
+exports.createTicket = async function (title, description) {
   const jira = getJiraClient();
-  const issueData = exports.createIssueData(summary, description, linkedIssueKey);
+  const parsedTitle = exports.parseTitle(title);
+  const issueData = exports.createIssueData(parsedTitle.title, description, parsedTitle.ticketNumber);
   try {
     return await jira.addNewIssue(issueData);
   } catch (error) {
@@ -69,3 +70,13 @@ exports.createTicket = async function (summary, description, linkedIssueKey) {
     process.exit(1);
   }
 };
+
+exports.parseTitle = function (title) {
+    const ticketPrefix = core.getInput("ticket_prefix", { required: true });
+    const re = new RegExp(`^(${ticketPrefix}\\-\\d+)(.*)$`);
+    const result = re.exec(title);
+    if (result) {
+        return {ticketNumber: result[1], title: result[2].trim()};
+    }
+    return {title};
+ }

@@ -6,19 +6,18 @@ const {
   appendReleaseBody,
 } = require("./src/gh");
 const { createTicket } = require("./src/jira");
-const { parseTitle } = require("./src/ticket");
 
 async function run() {
   const jira_host = core.getInput("jira_host", { required: true });
   const ticket_descriptor = core.getInput("ticket_descriptor");
+
   const pr = await getPR();
   const reviews = await getReviews(pr);
   console.log(reviews);
   const release = await getRelease();
   const body = buildTicketBody(pr, release, reviews);
   console.log(body);
-  const parsedTitle = parseTitle(release.data.name);
-  const ticket = await createTicket(parsedTitle.title, body, parsedTitle.ticket);
+  const ticket = await createTicket(release.data.name, body);
   console.log(ticket);
   await appendReleaseBody(
     `${ticket_descriptor}: [${ticket.key}](https://${jira_host}/browse/${ticket.key})`
@@ -38,7 +37,7 @@ function buildTicketBody(pr, release, reviews) {
   ];
   body += "\n*Reviewers*\n";
   for (let i = 0; i < uniqueReviews.length; i++) {
-    body += `[${uniqueReviews[i].user.login}|${uniqueReviews[i].user.url}]\n`
+    body += `[${uniqueReviews[i].user.login}|${uniqueReviews[i].user.url}]\n`;
   }
   return body;
 }

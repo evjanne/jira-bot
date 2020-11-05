@@ -13,19 +13,18 @@ const {
   appendReleaseBody,
 } = __webpack_require__(6989);
 const { createTicket } = __webpack_require__(3845);
-const { parseTitle } = __webpack_require__(5574);
 
 async function run() {
   const jira_host = core.getInput("jira_host", { required: true });
   const ticket_descriptor = core.getInput("ticket_descriptor");
+
   const pr = await getPR();
   const reviews = await getReviews(pr);
   console.log(reviews);
   const release = await getRelease();
   const body = buildTicketBody(pr, release, reviews);
   console.log(body);
-  const parsedTitle = parseTitle(release.data.name);
-  const ticket = await createTicket(parsedTitle.title, body, parsedTitle.ticket);
+  const ticket = await createTicket(release.data.name, body);
   console.log(ticket);
   await appendReleaseBody(
     `${ticket_descriptor}: [${ticket.key}](https://${jira_host}/browse/${ticket.key})`
@@ -45,7 +44,7 @@ function buildTicketBody(pr, release, reviews) {
   ];
   body += "\n*Reviewers*\n";
   for (let i = 0; i < uniqueReviews.length; i++) {
-    body += `[${uniqueReviews[i].user.login}|${uniqueReviews[i].user.url}]\n`
+    body += `[${uniqueReviews[i].user.login}|${uniqueReviews[i].user.url}]\n`;
   }
   return body;
 }
@@ -61220,9 +61219,10 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
   return issueData;
 };
 
-exports.createTicket = async function (summary, description, linkedIssueKey) {
+exports.createTicket = async function (title, description) {
   const jira = getJiraClient();
-  const issueData = exports.createIssueData(summary, description, linkedIssueKey);
+  const parsedTitle = exports.parseTitle(title);
+  const issueData = exports.createIssueData(parsedTitle.title, description, parsedTitle.ticketNumber);
   try {
     return await jira.addNewIssue(issueData);
   } catch (error) {
@@ -61231,20 +61231,12 @@ exports.createTicket = async function (summary, description, linkedIssueKey) {
   }
 };
 
-
-/***/ }),
-
-/***/ 5574:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-const core = __webpack_require__(2186);
-
 exports.parseTitle = function (title) {
     const ticketPrefix = core.getInput("ticket_prefix", { required: true });
     const re = new RegExp(`^(${ticketPrefix}\\-\\d+)(.*)$`);
     const result = re.exec(title);
     if (result) {
-        return {ticket: result[1], title: result[2].trim()};
+        return {ticketNumber: result[1], title: result[2].trim()};
     }
     return {title};
  }

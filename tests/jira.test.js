@@ -1,10 +1,11 @@
 const setInputs = require("./test-utils");
-const { createIssueData } = require("../src/jira");
+const { createIssueData, parseTitle } = require("../src/jira");
 var moment = require("moment-timezone");
 
 beforeEach(() => {
   setInputs({
-    configuration_file: ".github/jira-config.yml"
+    configuration_file: ".github/jira-config.yml",
+    ticket_prefix: "EVI"
   });
 });
 
@@ -29,3 +30,13 @@ test("create issue data", () => {
         }
       });
 });
+
+test("parse ticket number", () => {
+    const result = parseTitle("EVI-12345 Test PR");
+    expect(result).toEqual({ticket: "EVI-12345", title: "Test PR"});
+  });
+  
+  test("no ticket number", () => {
+    const result = parseTitle("This is just test PR");
+    expect(result).toEqual({title: "This is just test PR"});
+  });
