@@ -6,6 +6,12 @@ on:
       tag:
         description: 'Version tag'
         required: true
+      type:
+        description: 'create/update'
+        required: true
+      status:
+        description: 'Ticket status for update action'
+        required: false
 
 jobs:
   create_ticket:

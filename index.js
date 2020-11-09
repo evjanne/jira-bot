@@ -1,4 +1,5 @@
 const core = require("@actions/core");
+const { context } = require("@actions/github");
 const {
   getPR,
   getReviews,
@@ -8,6 +9,12 @@ const {
 const { createTicket } = require("./src/jira");
 
 async function run() {
+  if (context.payload.inputs.type === "create") {
+      newTicket();
+  }
+}
+
+async function newTicket() {
   const jira_host = core.getInput("jira_host", { required: true });
   const ticket_descriptor = core.getInput("ticket_descriptor");
 

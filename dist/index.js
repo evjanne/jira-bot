@@ -6,6 +6,7 @@ require('./sourcemap-register.js');module.exports =
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
 
 const core = __webpack_require__(2186);
+const { context } = __webpack_require__(5438);
 const {
   getPR,
   getReviews,
@@ -15,6 +16,12 @@ const {
 const { createTicket } = __webpack_require__(3845);
 
 async function run() {
+  if (context.payload.inputs.type === "create") {
+      newTicket();
+  }
+}
+
+async function newTicket() {
   const jira_host = core.getInput("jira_host", { required: true });
   const ticket_descriptor = core.getInput("ticket_descriptor");
 
