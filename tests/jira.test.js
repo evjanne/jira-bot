@@ -33,7 +33,7 @@ test("create issue data", () => {
 
 test("parse ticket number", () => {
     const result = parseTitle("EVI-12345 Test PR");
-    expect(result).toEqual({ticket: "EVI-12345", title: "Test PR"});
+    expect(result).toEqual({ticketNumber: "EVI-12345", title: "Test PR"});
   });
   
   test("no ticket number", () => {

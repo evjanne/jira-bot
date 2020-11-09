@@ -72,8 +72,7 @@ exports.createTicket = async function (title, description) {
 };
 
 exports.parseTitle = function (title) {
-    const ticketPrefix = core.getInput("ticket_prefix", { required: true });
-    const re = new RegExp(`^(${ticketPrefix}\\-\\d+)(.*)$`);
+    const re = /^(\w+\-\d+)(.*)$/
     const result = re.exec(title);
     if (result) {
         return {ticketNumber: result[1], title: result[2].trim()};

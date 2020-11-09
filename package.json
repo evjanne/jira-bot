@@ -19,7 +19,8 @@
   "homepage": "https://github.com/evjanne/jira-bot#readme",
   "devDependencies": {
     "@vercel/ncc": "^0.24.1",
-    "jest": "^26.6.2"
+    "jest": "^26.6.2",
+    "rewire": "^5.0.0"
   },
   "dependencies": {
     "@actions/core": "^1.2.6",

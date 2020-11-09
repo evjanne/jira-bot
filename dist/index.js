@@ -5,56 +5,7 @@ require('./sourcemap-register.js');module.exports =
 /***/ 2932:
 /***/ ((__unused_webpack_module, __unused_webpack_exports, __webpack_require__) => {
 
-const core = __webpack_require__(2186);
-const { context } = __webpack_require__(5438);
-const {
-  getPR,
-  getReviews,
-  getRelease,
-  appendReleaseBody,
-} = __webpack_require__(6989);
-const { createTicket } = __webpack_require__(3845);
-
-async function run() {
-  if (context.payload.inputs.type === "create") {
-      newTicket();
-  }
-}
-
-async function newTicket() {
-  const jira_host = core.getInput("jira_host", { required: true });
-  const ticket_descriptor = core.getInput("ticket_descriptor");
-
-  const pr = await getPR();
-  const reviews = await getReviews(pr);
-  console.log(reviews);
-  const release = await getRelease();
-  const body = buildTicketBody(pr, release, reviews);
-  console.log(body);
-  const ticket = await createTicket(release.data.name, body);
-  console.log(ticket);
-  await appendReleaseBody(
-    `${ticket_descriptor}: [${ticket.key}](https://${jira_host}/browse/${ticket.key})`
-  );
-}
-
-function buildTicketBody(pr, release, reviews) {
-  let body = release.data.body;
-  body += `\n*Author*\n[${pr.user.login}|${pr.user.url}]`;
-  const approvedReviews = reviews.data.filter(
-    (review) => review.state === "APPROVED"
-  );
-  const uniqueReviews = [
-    ...new Map(
-      approvedReviews.map((review) => [review.user.id, review])
-    ).values(),
-  ];
-  body += "\n*Reviewers*\n";
-  for (let i = 0; i < uniqueReviews.length; i++) {
-    body += `[${uniqueReviews[i].user.login}|${uniqueReviews[i].user.url}]\n`;
-  }
-  return body;
-}
+const { run } = __webpack_require__(3348);
 
 run();
 
@@ -61097,6 +61048,77 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 3348:
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+const core = __webpack_require__(2186);
+const { context } = __webpack_require__(5438);
+const {
+  getPR,
+  getReviews,
+  getRelease,
+  appendReleaseBody,
+} = __webpack_require__(6989);
+const { createTicket } = __webpack_require__(3845);
+
+exports.run = async function() {
+  const type = core.getInput("type") || context.payload?.inputs?.type;
+  if (type === "create") {
+    await newTicket();
+  } else if (type === "update") {
+    await updateTicket();
+  }
+}
+
+async function newTicket() {
+  const jira_host = core.getInput("jira_host", { required: true });
+  const ticket_descriptor = core.getInput("ticket_descriptor");
+
+  const pr = await getPR();
+  const reviews = await getReviews(pr);
+  console.log(reviews);
+  const release = await getRelease();
+  const body = buildTicketBody(pr, release, reviews);
+  console.log(body);
+  const ticket = await createTicket(release.data.name, body);
+  console.log(ticket);
+  await appendReleaseBody(
+    `${ticket_descriptor}: [${ticket.key}](https://${jira_host}/browse/${ticket.key})`
+  );
+}
+
+function buildTicketBody(pr, release, reviews) {
+  let body = release.data.body;
+  body += `\n*Author*\n[${pr.user.login}|${pr.user.url}]`;
+  const approvedReviews = reviews.data.filter(
+    (review) => review.state === "APPROVED"
+  );
+  const uniqueReviews = [
+    ...new Map(
+      approvedReviews.map((review) => [review.user.id, review])
+    ).values(),
+  ];
+  body += "\n*Reviewers*\n";
+  for (let i = 0; i < uniqueReviews.length; i++) {
+    body += `[${uniqueReviews[i].user.login}|${uniqueReviews[i].user.url}]\n`;
+  }
+  return body;
+}
+
+async function updateTicket() {    
+  const release = await getRelease();
+  const ticket = parseTicketNumber(release.data.body);
+}
+
+function parseTicketNumber(releaseBody) {
+  const re = /(\[\w+\-\d+\])/;
+  const result = re.exec(releaseBody);
+  const ticket = result ? result[1].slice(1, -1) : null;
+  return ticket;
+}
+
+/***/ }),
+
 /***/ 4570:
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
@@ -61239,8 +61261,7 @@ exports.createTicket = async function (title, description) {
 };
 
 exports.parseTitle = function (title) {
-    const ticketPrefix = core.getInput("ticket_prefix", { required: true });
-    const re = new RegExp(`^(${ticketPrefix}\\-\\d+)(.*)$`);
+    const re = /^(\w+\-\d+)(.*)$/
     const result = re.exec(title);
     if (result) {
         return {ticketNumber: result[1], title: result[2].trim()};

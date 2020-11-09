@@ -11,6 +11,7 @@ test("read configuration", () => {
     const config = parseConfig();
     expect(config).toEqual({
         project: '11212',
+        issue_link_type: 'Cause',
         issue_type: '50',
         fields: {
           components: ['Netpvr:Viscurator'],
