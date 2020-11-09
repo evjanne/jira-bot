@@ -61062,11 +61062,18 @@ const {
 const { createTicket } = __webpack_require__(3845);
 
 exports.run = async function() {
-  const type = core.getInput("type") || context.payload?.inputs?.type;
+  let type = core.getInput("type");
+  if (!type) {
+    tyre = context.payload.inputs.type;
+  }
   if (type === "create") {
+    console.log("Create ticket");
     await newTicket();
   } else if (type === "update") {
+    console.log("Update ticket");
     await updateTicket();
+  } else {
+    core.setFailed(`Invalid action type: ${type}`)
   }
 }
 
