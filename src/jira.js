@@ -77,7 +77,10 @@ exports.createTicket = async function (title, description) {
 
 exports.assignTicket = async function (ticketId, assignee) {
   const jira = getJiraClient();
-  jira.updateAssignee(ticketId, assignee);
+  if (assignee) {
+    console.log(`Assigning to: ${assignee}`)
+    await jira.updateAssignee(ticketId, assignee);
+  }
 }
 
 exports.parseTitle = function (title) {

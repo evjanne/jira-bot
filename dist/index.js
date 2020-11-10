@@ -61279,7 +61279,7 @@ async function newTicket() {
   console.log(body);
   const ticket = await createTicket(release.data.name, body, pr.user.login);
   if (config.users && config.users[pr.user.login]) {
-    assignTicket(ticket.id, config.users[pr.user.login])
+    await assignTicket(ticket.id, config.users[pr.user.login])
   }
   console.log(ticket);
   await appendReleaseBody(
@@ -61477,7 +61477,10 @@ exports.createTicket = async function (title, description) {
 
 exports.assignTicket = async function (ticketId, assignee) {
   const jira = getJiraClient();
-  jira.updateAssignee(ticketId, assignee);
+  if (assignee) {
+    console.log(`Assigning to: ${assignee}`)
+    await jira.updateAssignee(ticketId, assignee);
+  }
 }
 
 exports.parseTitle = function (title) {
