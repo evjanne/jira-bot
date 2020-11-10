@@ -36,7 +36,7 @@ async function newTicket() {
   const release = await getRelease();
   const body = buildTicketBody(pr, release, reviews);
   console.log(body);
-  const ticket = await createTicket(release.data.name, body);
+  const ticket = await createTicket(release.data.name, body, pr.user.login);
   console.log(ticket);
   await appendReleaseBody(
     `${ticket_descriptor}: [${ticket.key}](https://${jira_host}/browse/${ticket.key})`

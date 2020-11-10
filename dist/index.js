@@ -61276,7 +61276,7 @@ async function newTicket() {
   const release = await getRelease();
   const body = buildTicketBody(pr, release, reviews);
   console.log(body);
-  const ticket = await createTicket(release.data.name, body);
+  const ticket = await createTicket(release.data.name, body, pr.user.login);
   console.log(ticket);
   await appendReleaseBody(
     `${ticket_descriptor}: [${ticket.key}](https://${jira_host}/browse/${ticket.key})`
@@ -61413,7 +61413,12 @@ function getJiraClient() {
   });
 }
 
-exports.createIssueData = function (summary, description, linkedIssueKey) {
+exports.createIssueData = function (
+  summary,
+  description,
+  linkedIssueKey,
+  githubUser
+) {
   start_time = moment().format();
   const config = parseConfig();
   const fields = {
@@ -61432,6 +61437,9 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
         fields[key] = value;
       }
     }
+  }
+  if (config.users && config.users[githubUser]) {
+    fields["assignee"] = { name: config.users[githubUser] };
   }
   const update = {};
   if (linkedIssueKey && config.issue_link_type) {
@@ -61455,10 +61463,15 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
   return issueData;
 };
 
-exports.createTicket = async function (title, description) {
+exports.createTicket = async function (title, description, githubUser) {
   const jira = getJiraClient();
   const parsedTitle = exports.parseTitle(title);
-  const issueData = exports.createIssueData(parsedTitle.title, description, parsedTitle.featureTicket);
+  const issueData = exports.createIssueData(
+    parsedTitle.title,
+    description,
+    parsedTitle.featureTicket,
+    githubUser
+  );
   try {
     return await jira.addNewIssue(issueData);
   } catch (error) {
@@ -61468,24 +61481,25 @@ exports.createTicket = async function (title, description) {
 };
 
 exports.parseTitle = function (title) {
-    const re = /^(\w+\-\d+)(.*)$/
-    const result = re.exec(title);
-    if (result) {
-        return {featureTicket: result[1], title: result[2].trim()};
-    }
-    return {title};
- }
+  const re = /^(\w+\-\d+)(.*)$/;
+  const result = re.exec(title);
+  if (result) {
+    return { featureTicket: result[1], title: result[2].trim() };
+  }
+  return { title };
+};
 
- exports.getTicket = async function (number) {
-    const jira = getJiraClient();
-    try {
-        const issue = await jira.findIssue(number);
-        return issue;
-    } catch (error) {
-        core.setFailed(error.message);
-        process.exit(1);
-    }
- }
+exports.getTicket = async function (number) {
+  const jira = getJiraClient();
+  try {
+    const issue = await jira.findIssue(number);
+    return issue;
+  } catch (error) {
+    core.setFailed(error.message);
+    process.exit(1);
+  }
+};
+
 
 /***/ }),
 
