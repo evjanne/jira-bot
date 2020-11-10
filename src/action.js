@@ -7,6 +7,7 @@ const {
   getRelease,
   appendReleaseBody,
 } = require("./gh");
+const { parseConfig } = require("./config");
 const { createTicket, getTicket } = require("./jira");
 
 exports.run = async function() {
@@ -43,8 +44,15 @@ async function newTicket() {
 }
 
 function buildTicketBody(pr, release, reviews) {
-  let body = release.data.body;
-  body += `\n*Author*\n[${pr.user.login}|${pr.user.url}]`;
+  const config = parseConfig();
+  let body = J2M.toJ(release.data.body);
+  if (config.users && config.users[pr.user.login]) {
+      b
+  }
+  body += "\n\n*Author*\n";
+  body += getUserLink(config, pr.user);
+
+  body += "\n\n*Reviewers*\n";
   const approvedReviews = reviews.data.filter(
     (review) => review.state === "APPROVED"
   );
@@ -53,12 +61,17 @@ function buildTicketBody(pr, release, reviews) {
       approvedReviews.map((review) => [review.user.id, review])
     ).values(),
   ];
-  body += "\n*Reviewers*\n";
   for (let i = 0; i < uniqueReviews.length; i++) {
-    const name = uniqueReviews[i].user.name || uniqueReviews[i].user.login;
-    body += `[${name}|${uniqueReviews[i].user.html_url}]\n`;
+    body += getUserLink(config, uniqueReviews[i].user) + "\n";
   }
-  return J2M.toJ(body);
+  return body;
+}
+
+function getUserLink(config, user) {
+  if (config.users && config.users[user.login]) {
+      return `[~${config.users[user.login]}]`;
+  }
+  return `[${user.name || user.login}|${user.html_url}]`
 }
 
 async function updateTicket() {    
