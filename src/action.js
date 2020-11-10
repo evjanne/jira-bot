@@ -46,9 +46,6 @@ async function newTicket() {
 function buildTicketBody(pr, release, reviews) {
   const config = parseConfig();
   let body = J2M.toJ(release.data.body);
-  if (config.users && config.users[pr.user.login]) {
-      b
-  }
   body += "\n\n*Author*\n";
   body += getUserLink(config, pr.user);
 
