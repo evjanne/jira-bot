@@ -21729,6 +21729,193 @@ module.exports.isDuplex   = isDuplex
 
 /***/ }),
 
+/***/ 6282:
+/***/ ((module) => {
+
+
+(function() {
+
+	/**
+	 * Takes Jira markup and converts it to Markdown.
+	 *
+	 * @param {string} input - Jira markup text
+	 * @returns {string} - Markdown formatted text
+	 */
+	function toM(input) {
+		input = input.replace(/^h([0-6])\.(.*)$/gm, function (match,level,content) {
+			return Array(parseInt(level) + 1).join('#') + content;
+		});
+
+		input = input.replace(/([*_])(.*)\1/g, function (match,wrapper,content) {
+			var to = (wrapper === '*') ? '**' : '*';
+			return to + content + to;
+		});
+
+		input = input.replace(/\{\{([^}]+)\}\}/g, '`$1`');
+		input = input.replace(/\?\?((?:.[^?]|[^?].)+)\?\?/g, '<cite>$1</cite>');
+		input = input.replace(/\+([^+]*)\+/g, '<ins>$1</ins>');
+		input = input.replace(/\^([^^]*)\^/g, '<sup>$1</sup>');
+		input = input.replace(/~([^~]*)~/g, '<sub>$1</sub>');
+		input = input.replace(/-([^-]*)-/g, '-$1-');
+
+		input = input.replace(/\{code(:([a-z]+))?\}([^]*)\{code\}/gm, '```$2$3```');
+
+		input = input.replace(/\[(.+?)\|(.+)\]/g, '[$1]($2)');
+		input = input.replace(/\[(.+?)\]([^\(]*)/g, '<$1>$2');
+
+		input = input.replace(/{noformat}/g, '```');
+
+		// Convert header rows of tables by splitting input on lines
+		lines = input.split(/\r?\n/gm);
+		lines_to_remove = []
+		for (var i = 0; i < lines.length; i++) {
+			line_content = lines[i];
+
+			seperators = line_content.match(/\|\|/g);
+			if (seperators != null) {
+				lines[i] = lines[i].replace(/\|\|/g, "|");
+				console.log(seperators)
+
+				// Add a new line to mark the header in Markdown,
+				// we require that at least 3 -'s are between each |
+				header_line = "";
+				for (var j = 0; j < seperators.length-1; j++) {
+					header_line += "|---";
+				}
+
+				header_line += "|";
+
+				lines.splice(i+1, 0, header_line);
+
+			}
+		}
+
+		// Join the split lines back
+		input = ""
+		for (var i = 0; i < lines.length; i++) {
+			input += lines[i] + "\n"
+		}
+
+
+
+		return input;
+	};
+
+	/**
+	 * Takes Markdown and converts it to Jira formatted text
+	 *
+	 * @param {string} input
+	 * @returns {string}
+	 */
+	function toJ(input) {
+		// remove sections that shouldn't recursively processed
+		var START = 'J2MBLOCKPLACEHOLDER';
+		var replacementsList = [];
+		var counter = 0;
+		
+		input = input.replace(/`{3,}(\w+)?((?:\n|.)+?)`{3,}/g, function(match, synt, content) {
+		    var code = '{code';
+		
+		    if (synt) {
+		        code += ':' + synt;
+		    }
+		
+		    code += '}' + content + '{code}';
+		    var key = START + counter++ + '%%';
+		    replacementsList.push({key: key, value: code});
+		    return key;
+		});
+
+		input = input.replace(/^(.*?)\n([=-])+$/gm, function (match,content,level) {
+			return 'h' + (level[0] === '=' ? 1 : 2) + '. ' + content;
+		});
+
+		input = input.replace(/^([#]+)(.*?)$/gm, function (match,level,content) {
+			return 'h' + level.length + '.' + content;
+		});
+
+		input = input.replace(/([*_]+)(.*?)\1/g, function (match,wrapper,content) {
+			var to = (wrapper.length === 1) ? '_' : '*';
+			return to + content + to;
+		});
+		// Make multi-level bulleted lists work
+  		input = input.replace(/^(\s*)- (.*)$/gm, function (match,level,content) {
+    			var len = 2;
+    			if(level.length > 0) {
+        			len = parseInt(level.length/4.0) + 2;
+    			}
+    			return Array(len).join("-") + ' ' + content;
+  		});
+
+		var map = {
+			cite: '??',
+			del: '-',
+			ins: '+',
+			sup: '^',
+			sub: '~'
+		};
+
+		input = input.replace(new RegExp('<(' + Object.keys(map).join('|') + ')>(.*?)<\/\\1>', 'g'), function (match,from,content) {
+			//console.log(from);
+			var to = map[from];
+			return to + content + to;
+		});
+
+		input = input.replace(/~~(.*?)~~/g, '-$1-');
+
+		input = input.replace(/`([^`]+)`/g, '{{$1}}');
+
+		input = input.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '[$1|$2]');
+		input = input.replace(/<([^>]+)>/g, '[$1]');
+
+		// restore extracted sections
+		for(var i =0; i < replacementsList.length; i++){
+		    var sub = replacementsList[i];
+		    input = input.replace(sub["key"], sub["value"]);
+		}
+
+		// Convert header rows of tables by splitting input on lines
+		lines = input.split(/\r?\n/gm);
+		lines_to_remove = []
+		for (var i = 0; i < lines.length; i++) {
+			line_content = lines[i];
+
+			if (line_content.match(/\|---/g) != null) {
+				lines[i-1] = lines[i-1].replace(/\|/g, "||")
+				lines.splice(i, 1)
+			}
+		}
+
+		// Join the split lines back
+		input = ""
+		for (var i = 0; i < lines.length; i++) {
+			input += lines[i] + "\n"
+		}
+		return input;
+	};
+
+
+	/**
+	 * Exports object
+	 * @type {{toM: toM, toJ: toJ}}
+	 */
+	var J2M = {
+		toM: toM,
+		toJ: toJ
+	};
+
+	// exporting that can be used in a browser and in node
+	try {
+		window.J2M = J2M;
+	} catch (e) {
+		// not a browser, we assume it is node
+		module.exports = J2M;
+	}
+})();
+
+
+/***/ }),
+
 /***/ 6411:
 /***/ ((module, exports, __webpack_require__) => {
 
@@ -61053,13 +61240,14 @@ function wrappy (fn, cb) {
 
 const core = __webpack_require__(2186);
 const { context } = __webpack_require__(5438);
+const J2M = __webpack_require__(6282);
 const {
   getPR,
   getReviews,
   getRelease,
   appendReleaseBody,
 } = __webpack_require__(6989);
-const { createTicket } = __webpack_require__(3845);
+const { createTicket, getTicket } = __webpack_require__(3845);
 
 exports.run = async function() {
   let type = core.getInput("type");
@@ -61107,14 +61295,16 @@ function buildTicketBody(pr, release, reviews) {
   ];
   body += "\n*Reviewers*\n";
   for (let i = 0; i < uniqueReviews.length; i++) {
-    body += `[${uniqueReviews[i].user.login}|${uniqueReviews[i].user.url}]\n`;
+    const name = uniqueReviews[i].user.name || uniqueReviews[i].user.login;
+    body += `[${name}|${uniqueReviews[i].user.html_url}]\n`;
   }
-  return body;
+  return J2M.toJ(body);
 }
 
 async function updateTicket() {    
   const release = await getRelease();
-  const ticket = parseTicketNumber(release.data.body);
+  const ticketNumber = parseTicketNumber(release.data.body);
+  const ticket = await getTicket(ticketNumber);
 }
 
 function parseTicketNumber(releaseBody) {
@@ -61224,9 +61414,9 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
   };
   if (config.fields) {
     for (const [key, value] of Object.entries(config.fields)) {
-      if (value.type === "start_time") {
+      if (value.type === "current_time") {
         fields[key] = moment().format();
-      } else if (value.type === "end_time") {
+      } else if (value.type === "current_time_plus_hour") {
         fields[key] = moment().add({ hour: 1 }).format();
       } else {
         fields[key] = value;
@@ -61258,7 +61448,7 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
 exports.createTicket = async function (title, description) {
   const jira = getJiraClient();
   const parsedTitle = exports.parseTitle(title);
-  const issueData = exports.createIssueData(parsedTitle.title, description, parsedTitle.ticketNumber);
+  const issueData = exports.createIssueData(parsedTitle.title, description, parsedTitle.featureTicket);
   try {
     return await jira.addNewIssue(issueData);
   } catch (error) {
@@ -61271,11 +61461,21 @@ exports.parseTitle = function (title) {
     const re = /^(\w+\-\d+)(.*)$/
     const result = re.exec(title);
     if (result) {
-        return {ticketNumber: result[1], title: result[2].trim()};
+        return {featureTicket: result[1], title: result[2].trim()};
     }
     return {title};
  }
 
+ exports.getTicket = async function (number) {
+    const jira = getJiraClient();
+    try {
+        const issue = await jira.findIssue(number);
+        return issue;
+    } catch (error) {
+        core.setFailed(error.message);
+        process.exit(1);
+    }
+ }
 
 /***/ }),
 

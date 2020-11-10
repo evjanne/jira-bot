@@ -3,12 +3,24 @@ issue_type: "50"          # Release
 issue_link_type: "Cause"
 fields:
   components:
-    - "Netpvr:Viscurator"
+    - id: "17501"
   customfield_10913:      # Change Category "Standard"
     id: "15862"
   customfield_10898:      # Planned start time
-    type: start_time
+    type: current_time
   customfield_10899:      # Planned end time
-    type: end_time
+    type: current_time_plus_hour
   customfield_11581:      # Release status "Approved"
     id: "16820"
+resolve:
+  transition:
+    id: "21"
+  fields:
+    resolution:
+      id: "1"
+    customfield_10914:    # Actual start time
+      from: customfield_10898
+    customfield_10915:
+      type: current_time  # Actual end time
+    customfield_10916:
+      id: "15868"

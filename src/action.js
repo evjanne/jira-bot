@@ -1,12 +1,13 @@
 const core = require("@actions/core");
 const { context } = require("@actions/github");
+const J2M = require('j2m');
 const {
   getPR,
   getReviews,
   getRelease,
   appendReleaseBody,
 } = require("./gh");
-const { createTicket } = require("./jira");
+const { createTicket, getTicket } = require("./jira");
 
 exports.run = async function() {
   let type = core.getInput("type");
@@ -54,14 +55,16 @@ function buildTicketBody(pr, release, reviews) {
   ];
   body += "\n*Reviewers*\n";
   for (let i = 0; i < uniqueReviews.length; i++) {
-    body += `[${uniqueReviews[i].user.login}|${uniqueReviews[i].user.url}]\n`;
+    const name = uniqueReviews[i].user.name || uniqueReviews[i].user.login;
+    body += `[${name}|${uniqueReviews[i].user.html_url}]\n`;
   }
-  return body;
+  return J2M.toJ(body);
 }
 
 async function updateTicket() {    
   const release = await getRelease();
-  const ticket = parseTicketNumber(release.data.body);
+  const ticketNumber = parseTicketNumber(release.data.body);
+  const ticket = await getTicket(ticketNumber);
 }
 
 function parseTicketNumber(releaseBody) {

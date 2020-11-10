@@ -28,9 +28,9 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
   };
   if (config.fields) {
     for (const [key, value] of Object.entries(config.fields)) {
-      if (value.type === "start_time") {
+      if (value.type === "current_time") {
         fields[key] = moment().format();
-      } else if (value.type === "end_time") {
+      } else if (value.type === "current_time_plus_hour") {
         fields[key] = moment().add({ hour: 1 }).format();
       } else {
         fields[key] = value;
@@ -62,7 +62,7 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
 exports.createTicket = async function (title, description) {
   const jira = getJiraClient();
   const parsedTitle = exports.parseTitle(title);
-  const issueData = exports.createIssueData(parsedTitle.title, description, parsedTitle.ticketNumber);
+  const issueData = exports.createIssueData(parsedTitle.title, description, parsedTitle.featureTicket);
   try {
     return await jira.addNewIssue(issueData);
   } catch (error) {
@@ -75,7 +75,18 @@ exports.parseTitle = function (title) {
     const re = /^(\w+\-\d+)(.*)$/
     const result = re.exec(title);
     if (result) {
-        return {ticketNumber: result[1], title: result[2].trim()};
+        return {featureTicket: result[1], title: result[2].trim()};
     }
     return {title};
+ }
+
+ exports.getTicket = async function (number) {
+    const jira = getJiraClient();
+    try {
+        const issue = await jira.findIssue(number);
+        return issue;
+    } catch (error) {
+        core.setFailed(error.message);
+        process.exit(1);
+    }
  }
