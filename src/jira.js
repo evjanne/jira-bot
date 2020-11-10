@@ -17,12 +17,7 @@ function getJiraClient() {
   });
 }
 
-exports.createIssueData = function (
-  summary,
-  description,
-  linkedIssueKey,
-  githubUser
-) {
+exports.createIssueData = function (summary, description, linkedIssueKey) {
   start_time = moment().format();
   const config = parseConfig();
   const fields = {
@@ -41,9 +36,6 @@ exports.createIssueData = function (
         fields[key] = value;
       }
     }
-  }
-  if (config.users && config.users[githubUser]) {
-    fields["assignee"] = { name: config.users[githubUser] };
   }
   const update = {};
   if (linkedIssueKey && config.issue_link_type) {
@@ -67,14 +59,13 @@ exports.createIssueData = function (
   return issueData;
 };
 
-exports.createTicket = async function (title, description, githubUser) {
+exports.createTicket = async function (title, description) {
   const jira = getJiraClient();
   const parsedTitle = exports.parseTitle(title);
   const issueData = exports.createIssueData(
     parsedTitle.title,
     description,
-    parsedTitle.featureTicket,
-    githubUser
+    parsedTitle.featureTicket
   );
   try {
     return await jira.addNewIssue(issueData);
@@ -83,6 +74,11 @@ exports.createTicket = async function (title, description, githubUser) {
     process.exit(1);
   }
 };
+
+exports.assignTicket = async function (ticketId, assignee) {
+  const jira = getJiraClient();
+  jira.updateAssignee(ticketId, assignee);
+}
 
 exports.parseTitle = function (title) {
   const re = /^(\w+\-\d+)(.*)$/;

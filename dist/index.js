@@ -61248,7 +61248,7 @@ const {
   appendReleaseBody,
 } = __webpack_require__(6989);
 const { parseConfig } = __webpack_require__(4570);
-const { createTicket, getTicket } = __webpack_require__(3845);
+const { assignTicket, createTicket, getTicket } = __webpack_require__(3845);
 
 exports.run = async function() {
   let type = core.getInput("type");
@@ -61269,6 +61269,7 @@ exports.run = async function() {
 async function newTicket() {
   const jira_host = core.getInput("jira_host", { required: true });
   const ticket_descriptor = core.getInput("ticket_descriptor");
+  const config = parseConfig();
 
   const pr = await getPR();
   const reviews = await getReviews(pr);
@@ -61277,6 +61278,9 @@ async function newTicket() {
   const body = buildTicketBody(pr, release, reviews);
   console.log(body);
   const ticket = await createTicket(release.data.name, body, pr.user.login);
+  if (config.users && config.users[pr.user.login]) {
+    assignTicket(ticket.id, config.users[pr.user.login])
+  }
   console.log(ticket);
   await appendReleaseBody(
     `${ticket_descriptor}: [${ticket.key}](https://${jira_host}/browse/${ticket.key})`
@@ -61413,12 +61417,7 @@ function getJiraClient() {
   });
 }
 
-exports.createIssueData = function (
-  summary,
-  description,
-  linkedIssueKey,
-  githubUser
-) {
+exports.createIssueData = function (summary, description, linkedIssueKey) {
   start_time = moment().format();
   const config = parseConfig();
   const fields = {
@@ -61437,9 +61436,6 @@ exports.createIssueData = function (
         fields[key] = value;
       }
     }
-  }
-  if (config.users && config.users[githubUser]) {
-    fields["assignee"] = { name: config.users[githubUser] };
   }
   const update = {};
   if (linkedIssueKey && config.issue_link_type) {
@@ -61463,14 +61459,13 @@ exports.createIssueData = function (
   return issueData;
 };
 
-exports.createTicket = async function (title, description, githubUser) {
+exports.createTicket = async function (title, description) {
   const jira = getJiraClient();
   const parsedTitle = exports.parseTitle(title);
   const issueData = exports.createIssueData(
     parsedTitle.title,
     description,
-    parsedTitle.featureTicket,
-    githubUser
+    parsedTitle.featureTicket
   );
   try {
     return await jira.addNewIssue(issueData);
@@ -61479,6 +61474,11 @@ exports.createTicket = async function (title, description, githubUser) {
     process.exit(1);
   }
 };
+
+exports.assignTicket = async function (ticketId, assignee) {
+  const jira = getJiraClient();
+  jira.updateAssignee(ticketId, assignee);
+}
 
 exports.parseTitle = function (title) {
   const re = /^(\w+\-\d+)(.*)$/;
