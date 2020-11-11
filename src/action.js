@@ -5,6 +5,7 @@ const {
   getPR,
   getReviews,
   getRelease,
+  getUser,
   appendReleaseBody,
 } = require("./gh");
 const { parseConfig } = require("./config");
@@ -35,7 +36,7 @@ async function newTicket() {
   const reviews = await getReviews(pr);
   console.log(reviews);
   const release = await getRelease();
-  const body = buildTicketBody(pr, release, reviews);
+  const body = await buildTicketBody(pr, release, reviews);
   console.log(body);
   const ticket = await createTicket(release.data.name, body, pr.user.login);
   if (config.users && config.users[pr.user.login]) {
@@ -47,11 +48,10 @@ async function newTicket() {
   );
 }
 
-function buildTicketBody(pr, release, reviews) {
-  const config = parseConfig();
+async function buildTicketBody(pr, release, reviews) {
   let body = J2M.toJ(release.data.body);
   body += "\n\n*Author*\n";
-  body += getUserLink(config, pr.user);
+  body += await getUserLink(pr.user);
 
   body += "\n\n*Reviewers*\n";
   const approvedReviews = reviews.data.filter(
@@ -63,16 +63,17 @@ function buildTicketBody(pr, release, reviews) {
     ).values(),
   ];
   for (let i = 0; i < uniqueReviews.length; i++) {
-    body += getUserLink(config, uniqueReviews[i].user) + "\n";
+    body += await getUserLink(uniqueReviews[i].user) + "\n";
   }
   return body;
 }
 
-function getUserLink(config, user) {
-  if (config.users && config.users[user.login]) {
-      return `[~${config.users[user.login]}]`;
+async function getUserLink(user) {
+  const userData = await getUser(user.login)
+  if (userData.email) {
+      return `[~${userData.email}]`;
   }
-  return `[${user.name || user.login}|${user.html_url}]`
+  return `[${userData.name || userData.login}|${userData.html_url}]`
 }
 
 async function updateTicket() {    

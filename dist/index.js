@@ -61245,6 +61245,7 @@ const {
   getPR,
   getReviews,
   getRelease,
+  getUser,
   appendReleaseBody,
 } = __webpack_require__(6989);
 const { parseConfig } = __webpack_require__(4570);
@@ -61275,7 +61276,7 @@ async function newTicket() {
   const reviews = await getReviews(pr);
   console.log(reviews);
   const release = await getRelease();
-  const body = buildTicketBody(pr, release, reviews);
+  const body = await buildTicketBody(pr, release, reviews);
   console.log(body);
   const ticket = await createTicket(release.data.name, body, pr.user.login);
   if (config.users && config.users[pr.user.login]) {
@@ -61287,11 +61288,10 @@ async function newTicket() {
   );
 }
 
-function buildTicketBody(pr, release, reviews) {
-  const config = parseConfig();
+async function buildTicketBody(pr, release, reviews) {
   let body = J2M.toJ(release.data.body);
   body += "\n\n*Author*\n";
-  body += getUserLink(config, pr.user);
+  body += await getUserLink(pr.user);
 
   body += "\n\n*Reviewers*\n";
   const approvedReviews = reviews.data.filter(
@@ -61303,16 +61303,17 @@ function buildTicketBody(pr, release, reviews) {
     ).values(),
   ];
   for (let i = 0; i < uniqueReviews.length; i++) {
-    body += getUserLink(config, uniqueReviews[i].user) + "\n";
+    body += await getUserLink(uniqueReviews[i].user) + "\n";
   }
   return body;
 }
 
-function getUserLink(config, user) {
-  if (config.users && config.users[user.login]) {
-      return `[~${config.users[user.login]}]`;
+async function getUserLink(user) {
+  const userData = await getUser(user.login)
+  if (userData.email) {
+      return `[~${userData.email}]`;
   }
-  return `[${user.name || user.login}|${user.html_url}]`
+  return `[${userData.name || userData.login}|${userData.html_url}]`
 }
 
 async function updateTicket() {    
@@ -61353,45 +61354,55 @@ const core = __webpack_require__(2186);
 const { getOctokit, context } = __webpack_require__(5438);
 
 exports.getPR = async function () {
-    const tag = core.getInput("tag") || context.payload.inputs.tag;
-    const token = core.getInput("github_token", { required: true });
-    const octokit = getOctokit(token);
-    const { owner, repo } = context.repo;
-    const tags = await octokit.paginate(octokit.repos.listTags.endpoint.merge({ owner, repo }));
-    const releaseTag = tags.filter((t) => t.name === tag)[0];
-    const q = `SHA:${releaseTag.commit.sha}`;
-    const searchResults = await octokit.search.issuesAndPullRequests({ q });
-    const pr = searchResults.data.items[0];
-    return pr;
-}
+  const tag = core.getInput("tag") || context.payload.inputs.tag;
+  const token = core.getInput("github_token", { required: true });
+  const octokit = getOctokit(token);
+  const { owner, repo } = context.repo;
+  const tags = await octokit.paginate(
+    octokit.repos.listTags.endpoint.merge({ owner, repo })
+  );
+  const releaseTag = tags.filter((t) => t.name === tag)[0];
+  const q = `SHA:${releaseTag.commit.sha}`;
+  const searchResults = await octokit.search.issuesAndPullRequests({ q });
+  const pr = searchResults.data.items[0];
+  return pr;
+};
 
 exports.getRelease = async function () {
-    const tag = core.getInput("tag") || context.payload.inputs.tag;
-    const token = core.getInput("github_token", { required: true });
-    const octokit = getOctokit(token);
-    const { owner, repo } = context.repo;
-    const release = await octokit.repos.getReleaseByTag({ owner, repo, tag });
-    return release;
-}
+  const tag = core.getInput("tag") || context.payload.inputs.tag;
+  const token = core.getInput("github_token", { required: true });
+  const octokit = getOctokit(token);
+  const { owner, repo } = context.repo;
+  const release = await octokit.repos.getReleaseByTag({ owner, repo, tag });
+  return release;
+};
 
 exports.appendReleaseBody = async function (text) {
-    const release = await exports.getRelease();
-    const release_id = release.data.id;
-    const body = release.data.body + "\n\n" + text;
-    const token = core.getInput("github_token", { required: true });
-    const octokit = getOctokit(token);
-    const { owner, repo } = context.repo;
-    octokit.repos.updateRelease({ owner, repo, release_id, body});
-}
+  const release = await exports.getRelease();
+  const release_id = release.data.id;
+  const body = release.data.body + "\n\n" + text;
+  const token = core.getInput("github_token", { required: true });
+  const octokit = getOctokit(token);
+  const { owner, repo } = context.repo;
+  octokit.repos.updateRelease({ owner, repo, release_id, body });
+};
 
 exports.getReviews = async function (pr) {
-    const token = core.getInput("github_token", { required: true });
-    const octokit = getOctokit(token);
-    const { owner, repo } = context.repo;
-    const pull_number = pr.number;
-    const reviews = await octokit.pulls.listReviews({ owner, repo, pull_number });
-    return reviews;
-}
+  const token = core.getInput("github_token", { required: true });
+  const octokit = getOctokit(token);
+  const { owner, repo } = context.repo;
+  const pull_number = pr.number;
+  const reviews = await octokit.pulls.listReviews({ owner, repo, pull_number });
+  return reviews;
+};
+
+exports.getUser = async function (username) {
+  const token = core.getInput("github_token", { required: true });
+  const octokit = getOctokit(token);
+  const user = await octokit.users.getByUsername({ username });
+  return user.data;
+};
+
 
 /***/ }),
 
