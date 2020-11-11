@@ -103,9 +103,21 @@ exports.getIssue = async function (number) {
   }
 };
 
-exports.resolveIssue = async function (issue, resolution) {
+exports.resolveIssue = async function (issue) {
   const jira = getJiraClient();
   const config = parseConfig();
+  const transition = config.resolve.transition;
+  if (transition.fields) {
+    for (const [key, value] of Object.entries(config.fields)) {
+        if (value.type === "current_time") {
+          fields[key] = moment().format();
+        } else if (value.from) {
+          fields[key] = issue.fields[value.from];
+        } else {
+          fields[key] = value;
+        }
+      } 
+  }
   try {
     await jira.transitionIssue(issue, data);
   } catch (error) {

@@ -61249,9 +61249,14 @@ const {
   appendReleaseBody,
 } = __webpack_require__(6989);
 const { parseConfig } = __webpack_require__(4570);
-const { assignTicket, createTicket, getIssue } = __webpack_require__(3845);
+const {
+  assignTicket,
+  createTicket,
+  getIssue,
+  resolveIssue,
+} = __webpack_require__(3845);
 
-exports.run = async function() {
+exports.run = async function () {
   let type = core.getInput("type");
   if (!type) {
     type = context.payload.inputs.type;
@@ -61263,9 +61268,9 @@ exports.run = async function() {
     console.log("Resolve ticket");
     await resolveTicket();
   } else {
-    core.setFailed(`Invalid action type: ${type}`)
+    core.setFailed(`Invalid action type: ${type}`);
   }
-}
+};
 
 async function newTicket() {
   const jira_host = core.getInput("jira_host", { required: true });
@@ -61280,7 +61285,7 @@ async function newTicket() {
   console.log(body);
   const ticket = await createTicket(release.data.name, body, pr.user.login);
   if (config.users && config.users[pr.user.login]) {
-    await assignTicket(ticket.id, config.users[pr.user.login])
+    await assignTicket(ticket.id, config.users[pr.user.login]);
   }
   console.log(ticket);
   await appendReleaseBody(
@@ -61303,24 +61308,24 @@ async function buildTicketBody(pr, release, reviews) {
     ).values(),
   ];
   for (let i = 0; i < uniqueReviews.length; i++) {
-    body += await getUserLink(uniqueReviews[i].user) + "\n";
+    body += (await getUserLink(uniqueReviews[i].user)) + "\n";
   }
   return body;
 }
 
 async function getUserLink(user) {
-  const userData = await getUser(user.login)
+  const userData = await getUser(user.login);
   if (userData.email) {
-      return `[~${userData.email}]`;
+    return `[~${userData.email}]`;
   }
-  return `[${userData.name || userData.login}|${userData.html_url}]`
+  return `[${userData.name || userData.login}|${userData.html_url}]`;
 }
 
-async function resolveTicket() {    
+async function resolveTicket() {
   const release = await getRelease();
   const ticketNumber = parseTicketNumber(release.data.body);
   const issue = await getIssue(ticketNumber);
-  console.log(JSON.stringify(issue));
+  await resolveIssue(issue);
 }
 
 function parseTicketNumber(releaseBody) {
@@ -61329,6 +61334,7 @@ function parseTicketNumber(releaseBody) {
   const ticket = result ? result[1].slice(1, -1) : null;
   return ticket;
 }
+
 
 /***/ }),
 
@@ -61515,9 +61521,21 @@ exports.getIssue = async function (number) {
   }
 };
 
-exports.resolveIssue = async function (issue, resolution) {
+exports.resolveIssue = async function (issue) {
   const jira = getJiraClient();
   const config = parseConfig();
+  const transition = config.resolve.transition;
+  if (transition.fields) {
+    for (const [key, value] of Object.entries(config.fields)) {
+        if (value.type === "current_time") {
+          fields[key] = moment().format();
+        } else if (value.from) {
+          fields[key] = issue.fields[value.from];
+        } else {
+          fields[key] = value;
+        }
+      } 
+  }
   try {
     await jira.transitionIssue(issue, data);
   } catch (error) {

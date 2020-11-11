@@ -1,6 +1,6 @@
 const core = require("@actions/core");
 const { context } = require("@actions/github");
-const J2M = require('j2m');
+const J2M = require("j2m");
 const {
   getPR,
   getReviews,
@@ -9,9 +9,14 @@ const {
   appendReleaseBody,
 } = require("./gh");
 const { parseConfig } = require("./config");
-const { assignTicket, createTicket, getIssue } = require("./jira");
+const {
+  assignTicket,
+  createTicket,
+  getIssue,
+  resolveIssue,
+} = require("./jira");
 
-exports.run = async function() {
+exports.run = async function () {
   let type = core.getInput("type");
   if (!type) {
     type = context.payload.inputs.type;
@@ -23,9 +28,9 @@ exports.run = async function() {
     console.log("Resolve ticket");
     await resolveTicket();
   } else {
-    core.setFailed(`Invalid action type: ${type}`)
+    core.setFailed(`Invalid action type: ${type}`);
   }
-}
+};
 
 async function newTicket() {
   const jira_host = core.getInput("jira_host", { required: true });
@@ -40,7 +45,7 @@ async function newTicket() {
   console.log(body);
   const ticket = await createTicket(release.data.name, body, pr.user.login);
   if (config.users && config.users[pr.user.login]) {
-    await assignTicket(ticket.id, config.users[pr.user.login])
+    await assignTicket(ticket.id, config.users[pr.user.login]);
   }
   console.log(ticket);
   await appendReleaseBody(
@@ -63,24 +68,24 @@ async function buildTicketBody(pr, release, reviews) {
     ).values(),
   ];
   for (let i = 0; i < uniqueReviews.length; i++) {
-    body += await getUserLink(uniqueReviews[i].user) + "\n";
+    body += (await getUserLink(uniqueReviews[i].user)) + "\n";
   }
   return body;
 }
 
 async function getUserLink(user) {
-  const userData = await getUser(user.login)
+  const userData = await getUser(user.login);
   if (userData.email) {
-      return `[~${userData.email}]`;
+    return `[~${userData.email}]`;
   }
-  return `[${userData.name || userData.login}|${userData.html_url}]`
+  return `[${userData.name || userData.login}|${userData.html_url}]`;
 }
 
-async function resolveTicket() {    
+async function resolveTicket() {
   const release = await getRelease();
   const ticketNumber = parseTicketNumber(release.data.body);
   const issue = await getIssue(ticketNumber);
-  console.log(JSON.stringify(issue));
+  await resolveIssue(issue);
 }
 
 function parseTicketNumber(releaseBody) {
