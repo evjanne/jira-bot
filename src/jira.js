@@ -106,19 +106,23 @@ exports.getIssue = async function (number) {
 exports.resolveIssue = async function (issue) {
   const jira = getJiraClient();
   const config = parseConfig();
-  const resolve = config.resolve;
-  if (resolve.fields) {
-    for (const [key, value] of Object.entries(resolve.fields)) {
+  const transition = config.resolve.transition;
+  const fields = {};
+  if (config.resolve.fields) {
+    for (const [key, value] of Object.entries(config.resolve.fields)) {
       if (value.type === "current_time") {
-        resolve.fields[key] = moment().format();
+        fields[key] = moment().format();
       } else if (value.from) {
-        resolve.fields[key] = issue.fields[value.from];
+        fields[key] = issue.fields[value.from];
+      } else {
+        fields[key] = value;
       }
     }
   }
+  const resolve = { transition, fields };
   console.log(resolve);
   try {
-    await jira.transitionIssue(issue.id, resolve);
+    //await jira.transitionIssue(issue.id, resolve);
   } catch (error) {
     core.setFailed(error.message);
     process.exit(1);
