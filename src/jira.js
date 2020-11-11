@@ -121,7 +121,7 @@ exports.resolveIssue = async function (issue) {
   try {
     await jira.transitionIssue(issue, data);
   } catch (error) {
-    core.setFailed(error.message());
+    core.setFailed(error.message);
     process.exit(1);
   }
 }
