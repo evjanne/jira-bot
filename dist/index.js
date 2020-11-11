@@ -61542,7 +61542,7 @@ exports.resolveIssue = async function (issue) {
   const resolve = { transition, fields };
   console.log(resolve);
   try {
-    //await jira.transitionIssue(issue.id, resolve);
+    await jira.transitionIssue(issue.id, resolve);
   } catch (error) {
     core.setFailed(error.message);
     process.exit(1);
