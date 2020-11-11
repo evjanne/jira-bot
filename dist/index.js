@@ -61536,7 +61536,7 @@ exports.resolveIssue = async function (issue) {
       }
     }
   }
-  console.log(transition);
+  console.log(resolve);
   try {
     await jira.transitionIssue(issue.id, resolve);
   } catch (error) {
