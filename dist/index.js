@@ -61249,19 +61249,19 @@ const {
   appendReleaseBody,
 } = __webpack_require__(6989);
 const { parseConfig } = __webpack_require__(4570);
-const { assignTicket, createTicket, getTicket } = __webpack_require__(3845);
+const { assignTicket, createTicket, getIssue } = __webpack_require__(3845);
 
 exports.run = async function() {
   let type = core.getInput("type");
   if (!type) {
-    tyre = context.payload.inputs.type;
+    type = context.payload.inputs.type;
   }
   if (type === "create") {
     console.log("Create ticket");
     await newTicket();
-  } else if (type === "update") {
-    console.log("Update ticket");
-    await updateTicket();
+  } else if (type === "resolve") {
+    console.log("Resolve ticket");
+    await resolveTicket();
   } else {
     core.setFailed(`Invalid action type: ${type}`)
   }
@@ -61316,10 +61316,11 @@ async function getUserLink(user) {
   return `[${userData.name || userData.login}|${userData.html_url}]`
 }
 
-async function updateTicket() {    
+async function resolveTicket() {    
   const release = await getRelease();
   const ticketNumber = parseTicketNumber(release.data.body);
-  const ticket = await getTicket(ticketNumber);
+  const issue = await getIssue(ticketNumber);
+  console.log(JSON.stringify(issue));
 }
 
 function parseTicketNumber(releaseBody) {
@@ -61503,7 +61504,7 @@ exports.parseTitle = function (title) {
   return { title };
 };
 
-exports.getTicket = async function (number) {
+exports.getIssue = async function (number) {
   const jira = getJiraClient();
   try {
     const issue = await jira.findIssue(number);
@@ -61513,6 +61514,17 @@ exports.getTicket = async function (number) {
     process.exit(1);
   }
 };
+
+exports.resolveIssue = async function (issue, resolution) {
+  const jira = getJiraClient();
+  const config = parseConfig();
+  try {
+    await jira.transitionIssue(issue, data);
+  } catch (error) {
+    core.setFailed(error.message());
+    process.exit(1);
+  }
+}
 
 
 /***/ }),

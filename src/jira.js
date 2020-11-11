@@ -92,7 +92,7 @@ exports.parseTitle = function (title) {
   return { title };
 };
 
-exports.getTicket = async function (number) {
+exports.getIssue = async function (number) {
   const jira = getJiraClient();
   try {
     const issue = await jira.findIssue(number);
@@ -102,3 +102,14 @@ exports.getTicket = async function (number) {
     process.exit(1);
   }
 };
+
+exports.resolveIssue = async function (issue, resolution) {
+  const jira = getJiraClient();
+  const config = parseConfig();
+  try {
+    await jira.transitionIssue(issue, data);
+  } catch (error) {
+    core.setFailed(error.message());
+    process.exit(1);
+  }
+}

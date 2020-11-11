@@ -9,19 +9,19 @@ const {
   appendReleaseBody,
 } = require("./gh");
 const { parseConfig } = require("./config");
-const { assignTicket, createTicket, getTicket } = require("./jira");
+const { assignTicket, createTicket, getIssue } = require("./jira");
 
 exports.run = async function() {
   let type = core.getInput("type");
   if (!type) {
-    tyre = context.payload.inputs.type;
+    type = context.payload.inputs.type;
   }
   if (type === "create") {
     console.log("Create ticket");
     await newTicket();
-  } else if (type === "update") {
-    console.log("Update ticket");
-    await updateTicket();
+  } else if (type === "resolve") {
+    console.log("Resolve ticket");
+    await resolveTicket();
   } else {
     core.setFailed(`Invalid action type: ${type}`)
   }
@@ -76,10 +76,11 @@ async function getUserLink(user) {
   return `[${userData.name || userData.login}|${userData.html_url}]`
 }
 
-async function updateTicket() {    
+async function resolveTicket() {    
   const release = await getRelease();
   const ticketNumber = parseTicketNumber(release.data.body);
-  const ticket = await getTicket(ticketNumber);
+  const issue = await getIssue(ticketNumber);
+  console.log(JSON.stringify(issue));
 }
 
 function parseTicketNumber(releaseBody) {
