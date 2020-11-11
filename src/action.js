@@ -87,7 +87,7 @@ async function resolveTicket() {
   console.log(release.data.body)
   console.log(ticketNumber)
   const issue = await getIssue(ticketNumber);
-  //await resolveIssue(issue);
+  await resolveIssue(issue);
 }
 
 function parseTicketNumber(releaseBody) {
