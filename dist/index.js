@@ -61324,8 +61324,9 @@ async function getUserLink(user) {
 async function resolveTicket() {
   const release = await getRelease();
   const ticketNumber = parseTicketNumber(release.data.body);
+  console.log(ticketNumber)
   const issue = await getIssue(ticketNumber);
-  await resolveIssue(issue);
+  //await resolveIssue(issue);
 }
 
 function parseTicketNumber(releaseBody) {
