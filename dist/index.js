@@ -61540,7 +61540,7 @@ exports.resolveIssue = async function (issue) {
   }
   console.log(transition);
   try {
-    await jira.transitionIssue(issue, transition);
+    await jira.transitionIssue(issue, {transition});
   } catch (error) {
     core.setFailed(error.message);
     process.exit(1);
