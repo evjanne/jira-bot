@@ -110,9 +110,9 @@ exports.resolveIssue = async function (issue) {
   if (resolve.fields) {
     for (const [key, value] of Object.entries(resolve.fields)) {
       if (value.type === "current_time") {
-        transition.fields[key] = moment().format();
+        resolve.fields[key] = moment().format();
       } else if (value.from) {
-        transition.fields[key] = issue.fields[value.from];
+        resolve.fields[key] = issue.fields[value.from];
       }
     }
   }
