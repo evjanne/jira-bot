@@ -61530,17 +61530,15 @@ exports.resolveIssue = async function (issue) {
   if (transition.fields) {
     for (const [key, value] of Object.entries(config.fields)) {
         if (value.type === "current_time") {
-          fields[key] = moment().format();
+          transition.fields[key] = moment().format();
         } else if (value.from) {
-          fields[key] = issue.fields[value.from];
-        } else {
-          fields[key] = value;
-        }
+          transition.fields[key] = issue.fields[value.from];
+        } 
       } 
   }
   console.log(transition);
   try {
-    await jira.transitionIssue(issue, {transition});
+    await jira.transitionIssue(issue.id, {transition});
   } catch (error) {
     core.setFailed(error.message);
     process.exit(1);
