@@ -61498,10 +61498,10 @@ exports.createTicket = async function (title, description) {
 exports.assignTicket = async function (ticketId, assignee) {
   const jira = getJiraClient();
   if (assignee) {
-    console.log(`Assigning to: ${assignee}`)
+    console.log(`Assigning to: ${assignee}`);
     await jira.updateAssignee(ticketId, assignee);
   }
-}
+};
 
 exports.parseTitle = function (title) {
   const re = /^(\w+\-\d+)(.*)$/;
@@ -61526,24 +61526,24 @@ exports.getIssue = async function (number) {
 exports.resolveIssue = async function (issue) {
   const jira = getJiraClient();
   const config = parseConfig();
-  const transition = config.resolve.transition;
-  if (transition.fields) {
-    for (const [key, value] of Object.entries(config.fields)) {
-        if (value.type === "current_time") {
-          transition.fields[key] = moment().format();
-        } else if (value.from) {
-          transition.fields[key] = issue.fields[value.from];
-        } 
-      } 
+  const resolve = config.resolve;
+  if (resolve.fields) {
+    for (const [key, value] of Object.entries(resolve.fields)) {
+      if (value.type === "current_time") {
+        transition.fields[key] = moment().format();
+      } else if (value.from) {
+        transition.fields[key] = issue.fields[value.from];
+      }
+    }
   }
   console.log(transition);
   try {
-    await jira.transitionIssue(issue.id, {transition});
+    await jira.transitionIssue(issue.id, { transition });
   } catch (error) {
     core.setFailed(error.message);
     process.exit(1);
   }
-}
+};
 
 
 /***/ }),
