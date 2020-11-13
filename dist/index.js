@@ -12123,7 +12123,7 @@ function removeHook (state, name, method) {
 
 /***/ }),
 
-/***/ 5680:
+/***/ 5490:
 /***/ ((module) => {
 
 "use strict";
@@ -15834,7 +15834,7 @@ __webpack_require__(6087)(Promise, PromiseArray, debug);
 __webpack_require__(1156)(Promise, PromiseArray, apiRejection);
 __webpack_require__(2114)(Promise, INTERNAL, debug);
 __webpack_require__(880)(Promise, apiRejection, tryConvertToPromise, createContext, INTERNAL, debug);
-__webpack_require__(5680)(Promise);
+__webpack_require__(5490)(Promise);
 __webpack_require__(838)(Promise, INTERNAL);
 __webpack_require__(2223)(Promise, INTERNAL);
                                                          
@@ -27465,7 +27465,7 @@ var Schema = __webpack_require__(6514);
 module.exports = new Schema({
   explicit: [
     __webpack_require__(2672),
-    __webpack_require__(5490),
+    __webpack_require__(1282),
     __webpack_require__(1173)
   ]
 });
@@ -28465,7 +28465,7 @@ module.exports = new Type('tag:yaml.org,2002:pairs', {
 
 /***/ }),
 
-/***/ 5490:
+/***/ 1282:
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
@@ -61248,23 +61248,21 @@ const {
   getUser,
   appendReleaseBody,
 } = __webpack_require__(6989);
-const { parseConfig } = __webpack_require__(4570);
 const {
-  assignTicket,
   createTicket,
   getIssue,
   resolveIssue,
 } = __webpack_require__(3845);
 
 exports.run = async function () {
-  let type = core.getInput("type");
-  if (!type) {
+  let action = core.getInput("action");
+  if (!action) {
     type = context.payload.inputs.type;
   }
-  if (type === "create") {
+  if (action === "create") {
     console.log("Create ticket");
     await newTicket();
-  } else if (type === "resolve") {
+  } else if (action === "resolve") {
     console.log("Resolve ticket");
     await resolveTicket();
   } else {
@@ -61275,28 +61273,25 @@ exports.run = async function () {
 async function newTicket() {
   const jira_host = core.getInput("jira_host", { required: true });
   const ticket_descriptor = core.getInput("ticket_descriptor");
-  const config = parseConfig();
+  const title = core.getInput("title");
+  const description = core.getInput("description");
 
   const pr = await getPR();
   const reviews = await getReviews(pr);
   console.log(reviews);
-  const release = await getRelease();
-  const body = await buildTicketBody(pr, release, reviews);
-  console.log(body);
-  const ticket = await createTicket(release.data.name, body, pr.user.login);
-  if (config.users && config.users[pr.user.login]) {
-    await assignTicket(ticket.id, config.users[pr.user.login]);
-  }
+  const ticketDescription = await buildTicketDescription(pr.user, description, reviews);
+  console.log(ticketDescription);
+  const ticket = await createTicket(title, ticketDescription);
   console.log(ticket);
   await appendReleaseBody(
     `${ticket_descriptor}: [${ticket.key}](https://${jira_host}/browse/${ticket.key})`
   );
 }
 
-async function buildTicketBody(pr, release, reviews) {
-  let body = J2M.toJ(release.data.body);
+async function buildTicketDescription(author, description, reviews) {
+  let body = J2M.toJ(description);
   body += "\n\n*Author*\n";
-  body += await getUserLink(pr.user);
+  body += await getUserLink(author);
 
   body += "\n\n*Reviewers*\n";
   const approvedReviews = reviews.data.filter(
@@ -61363,14 +61358,21 @@ const core = __webpack_require__(2186);
 const { getOctokit, context } = __webpack_require__(5438);
 
 exports.getPR = async function () {
-  const tag = core.getInput("tag") || context.payload.inputs.tag;
   const token = core.getInput("github_token", { required: true });
   const octokit = getOctokit(token);
+
+  if (context.issue) {
+    const { owner, repo, number } = context.issue;
+    const pr = await octokit.pulls.get({ owner, repo, pull_number: number });
+    return pr;
+  }
+
+  const version = core.getInput("version") || context.payload.inputs.version;
   const { owner, repo } = context.repo;
   const tags = await octokit.paginate(
     octokit.repos.listTags.endpoint.merge({ owner, repo })
   );
-  const releaseTag = tags.filter((t) => t.name === tag)[0];
+  const releaseTag = tags.filter((t) => t.name === version)[0];
   const q = `SHA:${releaseTag.commit.sha}`;
   const searchResults = await octokit.search.issuesAndPullRequests({ q });
   const pr = searchResults.data.items[0];
@@ -61378,17 +61380,20 @@ exports.getPR = async function () {
 };
 
 exports.getRelease = async function () {
-  const tag = core.getInput("tag") || context.payload.inputs.tag;
   const token = core.getInput("github_token", { required: true });
   const octokit = getOctokit(token);
+  const tag = core.getInput("version") || context.payload.inputs.version;
   const { owner, repo } = context.repo;
   const release = await octokit.repos.getReleaseByTag({ owner, repo, tag });
   return release;
 };
 
 exports.appendReleaseBody = async function (text) {
-  const release = await exports.getRelease();
-  const release_id = release.data.id;
+  let release_id = core.getInput("release_id");
+  if (!release_id) {
+    const release = await exports.getRelease();
+    release_id = release.data.id;
+  }
   const body = release.data.body + "\n\n" + text;
   const token = core.getInput("github_token", { required: true });
   const octokit = getOctokit(token);

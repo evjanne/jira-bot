@@ -2,14 +2,21 @@ const core = require("@actions/core");
 const { getOctokit, context } = require("@actions/github");
 
 exports.getPR = async function () {
-  const tag = core.getInput("tag") || context.payload.inputs.tag;
   const token = core.getInput("github_token", { required: true });
   const octokit = getOctokit(token);
+
+  if (context.issue) {
+    const { owner, repo, number } = context.issue;
+    const pr = await octokit.pulls.get({ owner, repo, pull_number: number });
+    return pr;
+  }
+
+  const version = core.getInput("version") || context.payload.inputs.version;
   const { owner, repo } = context.repo;
   const tags = await octokit.paginate(
     octokit.repos.listTags.endpoint.merge({ owner, repo })
   );
-  const releaseTag = tags.filter((t) => t.name === tag)[0];
+  const releaseTag = tags.filter((t) => t.name === version)[0];
   const q = `SHA:${releaseTag.commit.sha}`;
   const searchResults = await octokit.search.issuesAndPullRequests({ q });
   const pr = searchResults.data.items[0];
@@ -17,17 +24,20 @@ exports.getPR = async function () {
 };
 
 exports.getRelease = async function () {
-  const tag = core.getInput("tag") || context.payload.inputs.tag;
   const token = core.getInput("github_token", { required: true });
   const octokit = getOctokit(token);
+  const tag = core.getInput("version") || context.payload.inputs.version;
   const { owner, repo } = context.repo;
   const release = await octokit.repos.getReleaseByTag({ owner, repo, tag });
   return release;
 };
 
 exports.appendReleaseBody = async function (text) {
-  const release = await exports.getRelease();
-  const release_id = release.data.id;
+  let release_id = core.getInput("release_id");
+  if (!release_id) {
+    const release = await exports.getRelease();
+    release_id = release.data.id;
+  }
   const body = release.data.body + "\n\n" + text;
   const token = core.getInput("github_token", { required: true });
   const octokit = getOctokit(token);

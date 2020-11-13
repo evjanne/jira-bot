@@ -8,23 +8,21 @@ const {
   getUser,
   appendReleaseBody,
 } = require("./gh");
-const { parseConfig } = require("./config");
 const {
-  assignTicket,
   createTicket,
   getIssue,
   resolveIssue,
 } = require("./jira");
 
 exports.run = async function () {
-  let type = core.getInput("type");
-  if (!type) {
+  let action = core.getInput("action");
+  if (!action) {
     type = context.payload.inputs.type;
   }
-  if (type === "create") {
+  if (action === "create") {
     console.log("Create ticket");
     await newTicket();
-  } else if (type === "resolve") {
+  } else if (action === "resolve") {
     console.log("Resolve ticket");
     await resolveTicket();
   } else {
@@ -35,28 +33,25 @@ exports.run = async function () {
 async function newTicket() {
   const jira_host = core.getInput("jira_host", { required: true });
   const ticket_descriptor = core.getInput("ticket_descriptor");
-  const config = parseConfig();
+  const title = core.getInput("title");
+  const description = core.getInput("description");
 
   const pr = await getPR();
   const reviews = await getReviews(pr);
   console.log(reviews);
-  const release = await getRelease();
-  const body = await buildTicketBody(pr, release, reviews);
-  console.log(body);
-  const ticket = await createTicket(release.data.name, body, pr.user.login);
-  if (config.users && config.users[pr.user.login]) {
-    await assignTicket(ticket.id, config.users[pr.user.login]);
-  }
+  const ticketDescription = await buildTicketDescription(pr.user, description, reviews);
+  console.log(ticketDescription);
+  const ticket = await createTicket(title, ticketDescription);
   console.log(ticket);
   await appendReleaseBody(
     `${ticket_descriptor}: [${ticket.key}](https://${jira_host}/browse/${ticket.key})`
   );
 }
 
-async function buildTicketBody(pr, release, reviews) {
-  let body = J2M.toJ(release.data.body);
+async function buildTicketDescription(author, description, reviews) {
+  let body = J2M.toJ(description);
   body += "\n\n*Author*\n";
-  body += await getUserLink(pr.user);
+  body += await getUserLink(author);
 
   body += "\n\n*Reviewers*\n";
   const approvedReviews = reviews.data.filter(
