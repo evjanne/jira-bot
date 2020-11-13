@@ -61277,6 +61277,7 @@ async function newTicket() {
   const description = core.getInput("description");
 
   const pr = await getPR();
+  console.lod(pr);
   const reviews = await getReviews(pr);
   console.log(reviews);
   const ticketDescription = await buildTicketDescription(pr.user, description, reviews);
