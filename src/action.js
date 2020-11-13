@@ -8,11 +8,7 @@ const {
   getUser,
   appendReleaseBody,
 } = require("./gh");
-const {
-  createTicket,
-  getIssue,
-  resolveIssue,
-} = require("./jira");
+const { createTicket, getIssue, resolveIssue } = require("./jira");
 
 exports.run = async function () {
   let action = core.getInput("action");
@@ -40,7 +36,11 @@ async function newTicket() {
   console.log(pr);
   const reviews = await getReviews(pr);
   console.log(reviews);
-  const ticketDescription = await buildTicketDescription(pr.user, description, reviews);
+  const ticketDescription = await buildTicketDescription(
+    pr.user,
+    description,
+    reviews
+  );
   console.log(ticketDescription);
   const ticket = await createTicket(title, ticketDescription);
   console.log(ticket);
@@ -54,17 +54,19 @@ async function buildTicketDescription(author, description, reviews) {
   body += "\n\n*Author*\n";
   body += await getUserLink(author);
 
-  body += "\n\n*Reviewers*\n";
-  const approvedReviews = reviews.data.filter(
-    (review) => review.state === "APPROVED"
-  );
-  const uniqueReviews = [
-    ...new Map(
-      approvedReviews.map((review) => [review.user.id, review])
-    ).values(),
-  ];
-  for (let i = 0; i < uniqueReviews.length; i++) {
-    body += (await getUserLink(uniqueReviews[i].user)) + "\n";
+  if (reviews) {
+    body += "\n\n*Reviewers*\n";
+    const approvedReviews = reviews.data.filter(
+      (review) => review.state === "APPROVED"
+    );
+    const uniqueReviews = [
+      ...new Map(
+        approvedReviews.map((review) => [review.user.id, review])
+      ).values(),
+    ];
+    for (let i = 0; i < uniqueReviews.length; i++) {
+      body += (await getUserLink(uniqueReviews[i].user)) + "\n";
+    }
   }
   return body;
 }
@@ -80,8 +82,8 @@ async function getUserLink(user) {
 async function resolveTicket() {
   const release = await getRelease();
   const ticketNumber = parseTicketNumber(release.data.body);
-  console.log(release.data.body)
-  console.log(ticketNumber)
+  console.log(release.data.body);
+  console.log(ticketNumber);
   const issue = await getIssue(ticketNumber);
   await resolveIssue(issue);
 }

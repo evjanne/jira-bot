@@ -61248,11 +61248,7 @@ const {
   getUser,
   appendReleaseBody,
 } = __webpack_require__(6989);
-const {
-  createTicket,
-  getIssue,
-  resolveIssue,
-} = __webpack_require__(3845);
+const { createTicket, getIssue, resolveIssue } = __webpack_require__(3845);
 
 exports.run = async function () {
   let action = core.getInput("action");
@@ -61280,7 +61276,11 @@ async function newTicket() {
   console.log(pr);
   const reviews = await getReviews(pr);
   console.log(reviews);
-  const ticketDescription = await buildTicketDescription(pr.user, description, reviews);
+  const ticketDescription = await buildTicketDescription(
+    pr.user,
+    description,
+    reviews
+  );
   console.log(ticketDescription);
   const ticket = await createTicket(title, ticketDescription);
   console.log(ticket);
@@ -61294,17 +61294,19 @@ async function buildTicketDescription(author, description, reviews) {
   body += "\n\n*Author*\n";
   body += await getUserLink(author);
 
-  body += "\n\n*Reviewers*\n";
-  const approvedReviews = reviews.data.filter(
-    (review) => review.state === "APPROVED"
-  );
-  const uniqueReviews = [
-    ...new Map(
-      approvedReviews.map((review) => [review.user.id, review])
-    ).values(),
-  ];
-  for (let i = 0; i < uniqueReviews.length; i++) {
-    body += (await getUserLink(uniqueReviews[i].user)) + "\n";
+  if (reviews) {
+    body += "\n\n*Reviewers*\n";
+    const approvedReviews = reviews.data.filter(
+      (review) => review.state === "APPROVED"
+    );
+    const uniqueReviews = [
+      ...new Map(
+        approvedReviews.map((review) => [review.user.id, review])
+      ).values(),
+    ];
+    for (let i = 0; i < uniqueReviews.length; i++) {
+      body += (await getUserLink(uniqueReviews[i].user)) + "\n";
+    }
   }
   return body;
 }
@@ -61320,8 +61322,8 @@ async function getUserLink(user) {
 async function resolveTicket() {
   const release = await getRelease();
   const ticketNumber = parseTicketNumber(release.data.body);
-  console.log(release.data.body)
-  console.log(ticketNumber)
+  console.log(release.data.body);
+  console.log(ticketNumber);
   const issue = await getIssue(ticketNumber);
   await resolveIssue(issue);
 }
@@ -61407,8 +61409,12 @@ exports.getReviews = async function (pr) {
   const octokit = getOctokit(token);
   const { owner, repo } = context.repo;
   const pull_number = pr.number;
-  const reviews = await octokit.pulls.listReviews({ owner, repo, pull_number });
-  return reviews;
+  try {
+    return await octokit.pulls.listReviews({ owner, repo, pull_number });
+  } catch (error) {
+    console.warn("WARNING: No reviews found");
+    return null;
+  }
 };
 
 exports.getUser = async function (username) {

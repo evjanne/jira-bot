@@ -50,8 +50,12 @@ exports.getReviews = async function (pr) {
   const octokit = getOctokit(token);
   const { owner, repo } = context.repo;
   const pull_number = pr.number;
-  const reviews = await octokit.pulls.listReviews({ owner, repo, pull_number });
-  return reviews;
+  try {
+    return await octokit.pulls.listReviews({ owner, repo, pull_number });
+  } catch (error) {
+    console.warn("WARNING: No reviews found");
+    return null;
+  }
 };
 
 exports.getUser = async function (username) {
