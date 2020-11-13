@@ -61385,18 +61385,19 @@ exports.getPR = async function () {
 exports.getRelease = async function () {
   const token = core.getInput("github_token", { required: true });
   const octokit = getOctokit(token);
-  const tag = core.getInput("version") || context.payload.inputs.version;
   const { owner, repo } = context.repo;
-  const release = await octokit.repos.getReleaseByTag({ owner, repo, tag });
-  return release;
+  const release_id = core.getInput("release_id");
+  if (release_id) {
+    return await octokit.repos.getRelease({ owner, repo, release_id });
+  } else {
+    const tag = core.getInput("version") || context.payload.inputs.version;
+    return await octokit.repos.getReleaseByTag({ owner, repo, tag });
+  }
 };
 
 exports.appendReleaseBody = async function (text) {
-  let release_id = core.getInput("release_id");
-  if (!release_id) {
-    const release = await exports.getRelease();
-    release_id = release.data.id;
-  }
+  const release = await exports.getRelease();
+  const release_id = release.id;
   const body = release.data.body + "\n\n" + text;
   const token = core.getInput("github_token", { required: true });
   const octokit = getOctokit(token);
