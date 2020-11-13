@@ -37,7 +37,7 @@ async function newTicket() {
   const reviews = await getReviews(pr);
   console.log(reviews);
   const ticketDescription = await buildTicketDescription(
-    pr.user,
+    pr.data.user,
     description,
     reviews
   );
