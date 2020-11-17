@@ -32,6 +32,7 @@ exports.getRelease = async function () {
     return await octokit.repos.getRelease({ owner, repo, release_id });
   } else {
     const tag = core.getInput("version") || context.payload.inputs.version;
+    console.log(`Owner: ${owner}\nRepo: ${repo}\nTag: ${tag}`)
     return await octokit.repos.getReleaseByTag({ owner, repo, tag });
   }
 };
