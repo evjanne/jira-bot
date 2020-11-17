@@ -39,7 +39,7 @@ exports.getRelease = async function () {
 
 exports.appendReleaseBody = async function (text) {
   const release = await exports.getRelease();
-  const release_id = release.id;
+  const release_id = release.data.id;
   const body = release.data.body + "\n\n" + text;
   const token = core.getInput("github_token", { required: true });
   const octokit = getOctokit(token);
