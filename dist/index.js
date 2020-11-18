@@ -61251,6 +61251,7 @@ const {
 const { createTicket, getIssue, resolveIssue } = __webpack_require__(3845);
 
 exports.run = async function () {
+  console.log(JSON.stringify(context));
   let action = core.getInput("action");
   if (!action) {
     action = context.payload.inputs.type;
@@ -61362,7 +61363,6 @@ const { getOctokit, context } = __webpack_require__(5438);
 exports.getPR = async function () {
   const token = core.getInput("github_token", { required: true });
   const octokit = getOctokit(token);
-  console.log(JSON.stringify(context));
 
   if (context.issue) {
     const { owner, repo, number } = context.issue;

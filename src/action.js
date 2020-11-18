@@ -11,6 +11,7 @@ const {
 const { createTicket, getIssue, resolveIssue } = require("./jira");
 
 exports.run = async function () {
+  console.log(JSON.stringify(context));
   let action = core.getInput("action");
   if (!action) {
     action = context.payload.inputs.type;

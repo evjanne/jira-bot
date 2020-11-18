@@ -4,7 +4,6 @@ const { getOctokit, context } = require("@actions/github");
 exports.getPR = async function () {
   const token = core.getInput("github_token", { required: true });
   const octokit = getOctokit(token);
-  console.log(JSON.stringify(context));
 
   if (context.issue) {
     const { owner, repo, number } = context.issue;
