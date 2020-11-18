@@ -3,6 +3,7 @@ const JiraApi = require("jira-client");
 const { parseConfig } = require("./config");
 
 var moment = require("moment-timezone");
+const { context } = require("@actions/github/lib/utils");
 moment.locale("fi");
 moment.defaultFormat = "YYYY-MM-DDTHH:mm:ss.SSSZZ";
 moment.tz.setDefault("Europe/Helsinki");
@@ -117,6 +118,11 @@ exports.resolveIssue = async function (issue) {
       } else {
         fields[key] = value;
       }
+    }
+  }
+  if (context.payload.client_payload && context.payload.client_payload.fields) {
+    for (const [key, value] of Object.entries(config.resolve.fields)) {
+      fields[key] = value;
     }
   }
   const resolve = { transition, fields };

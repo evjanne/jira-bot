@@ -61436,6 +61436,7 @@ const JiraApi = __webpack_require__(6411);
 const { parseConfig } = __webpack_require__(4570);
 
 var moment = __webpack_require__(7936);
+const { context } = __webpack_require__(3030);
 moment.locale("fi");
 moment.defaultFormat = "YYYY-MM-DDTHH:mm:ss.SSSZZ";
 moment.tz.setDefault("Europe/Helsinki");
@@ -61550,6 +61551,11 @@ exports.resolveIssue = async function (issue) {
       } else {
         fields[key] = value;
       }
+    }
+  }
+  if (context.payload.client_payload && context.payload.client_payload.fields) {
+    for (const [key, value] of Object.entries(config.resolve.fields)) {
+      fields[key] = value;
     }
   }
   const resolve = { transition, fields };
