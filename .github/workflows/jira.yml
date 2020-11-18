@@ -1,7 +1,8 @@
 name: Create Jira ticket
 
 on:
-  workflow_dispatch:
+  repository_dispatch:
+    types: resolve-ticket
     inputs:
       tag:
         description: 'Version tag'
