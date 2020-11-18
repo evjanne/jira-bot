@@ -61254,12 +61254,12 @@ exports.run = async function () {
   console.log(JSON.stringify(context));
   let action = core.getInput("action");
   if (!action) {
-    action = context.payload.inputs.type;
+    action = context.payload.action;
   }
-  if (action === "create") {
+  if (action === "create-ticket") {
     console.log("Create ticket");
     await newTicket();
-  } else if (action === "resolve") {
+  } else if (action === "resolve-ticket") {
     console.log("Resolve ticket");
     await resolveTicket();
   } else {
@@ -61369,7 +61369,7 @@ exports.getPR = async function () {
     const pr = await octokit.pulls.get({ owner, repo, pull_number: number });
     return pr;
   }
-  const version = core.getInput("version") || context.payload.inputs.version;
+  const version = core.getInput("version") || context.payload.client_payload.version;
   const { owner, repo } = context.repo;
   const tags = await octokit.paginate(
     octokit.repos.listTags.endpoint.merge({ owner, repo })
@@ -61389,7 +61389,7 @@ exports.getRelease = async function () {
   if (release_id) {
     return await octokit.repos.getRelease({ owner, repo, release_id });
   } else {
-    const tag = core.getInput("version") || context.payload.inputs.version;
+    const tag = core.getInput("version") || context.payload.client_payload.version;
     console.log(`Owner: ${owner}\nRepo: ${repo}\nTag: ${tag}`)
     return await octokit.repos.getReleaseByTag({ owner, repo, tag });
   }

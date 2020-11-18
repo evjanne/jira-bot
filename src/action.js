@@ -14,12 +14,12 @@ exports.run = async function () {
   console.log(JSON.stringify(context));
   let action = core.getInput("action");
   if (!action) {
-    action = context.payload.inputs.type;
+    action = context.payload.action;
   }
-  if (action === "create") {
+  if (action === "create-ticket") {
     console.log("Create ticket");
     await newTicket();
-  } else if (action === "resolve") {
+  } else if (action === "resolve-ticket") {
     console.log("Resolve ticket");
     await resolveTicket();
   } else {
