@@ -13,7 +13,7 @@ const { createTicket, getIssue, resolveIssue } = require("./jira");
 exports.run = async function () {
   let action = core.getInput("action");
   if (!action) {
-    type = context.payload.inputs.type;
+    action = context.payload.inputs.type;
   }
   if (action === "create") {
     console.log("Create ticket");
@@ -82,8 +82,7 @@ async function getUserLink(user) {
 async function resolveTicket() {
   const release = await getRelease();
   const ticketNumber = parseTicketNumber(release.data.body);
-  console.log(release.data.body);
-  console.log(ticketNumber);
+  console.log(`Update ticket ${ticketNumber}`);
   const issue = await getIssue(ticketNumber);
   await resolveIssue(issue);
 }

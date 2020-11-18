@@ -13,9 +13,9 @@ inputs:
   jira_password:
     description: "Account password"
     required: true
-  ticket_prefix:
-    description: "Jira ticket prefix"
-    required: true
+  type:
+    description: "Action type (create/resolve) needs to be provided as a parameter or optionally from the dispatch event"
+    required: false
   ticket_descriptor:
     description: "Text before ticket link in release notes"
     default: "Ticket"

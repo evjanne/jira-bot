@@ -61253,7 +61253,7 @@ const { createTicket, getIssue, resolveIssue } = __webpack_require__(3845);
 exports.run = async function () {
   let action = core.getInput("action");
   if (!action) {
-    type = context.payload.inputs.type;
+    action = context.payload.inputs.type;
   }
   if (action === "create") {
     console.log("Create ticket");
@@ -61322,8 +61322,7 @@ async function getUserLink(user) {
 async function resolveTicket() {
   const release = await getRelease();
   const ticketNumber = parseTicketNumber(release.data.body);
-  console.log(release.data.body);
-  console.log(ticketNumber);
+  console.log(`Update ticket ${ticketNumber}`);
   const issue = await getIssue(ticketNumber);
   await resolveIssue(issue);
 }
@@ -61363,13 +61362,13 @@ const { getOctokit, context } = __webpack_require__(5438);
 exports.getPR = async function () {
   const token = core.getInput("github_token", { required: true });
   const octokit = getOctokit(token);
+  console.log(JSON.stringify(context));
 
   if (context.issue) {
     const { owner, repo, number } = context.issue;
     const pr = await octokit.pulls.get({ owner, repo, pull_number: number });
     return pr;
   }
-
   const version = core.getInput("version") || context.payload.inputs.version;
   const { owner, repo } = context.repo;
   const tags = await octokit.paginate(
