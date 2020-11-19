@@ -1,17 +1,20 @@
-project: "11212"          # SoSe Elisa Viihde
-issue_type: "50"          # Release
-issue_link_type: "Cause"
-fields:
-  components:
-    - id: "17501"
-  customfield_10913:      # Change Category "Standard"
-    id: "15862"
-  customfield_10898:      # Planned start time
-    type: current_time
-  customfield_10899:      # Planned end time
-    type: current_time_plus_hour
-  customfield_11581:      # Release status "Approved"
-    id: "16820"
+create:
+  issue_link_type: "Cause"
+  fields:
+    project:
+      id: "11212"          # SoSe Elisa Viihde
+    issuetype:
+      id: "50"
+    components:
+      - id: "17501"
+    customfield_10913:      # Change Category "Standard"
+      id: "15862"
+    customfield_10898:      # Planned start time
+      type: current_time
+    customfield_10899:      # Planned end time
+      type: current_time_plus_hour
+    customfield_11581:      # Release status "Approved"
+      id: "16820"
 resolve:
   transition:
     id: "21"

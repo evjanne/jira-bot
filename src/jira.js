@@ -22,8 +22,6 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
   start_time = moment().format();
   const config = parseConfig();
   const fields = {
-    project: { id: config.project },
-    issuetype: { id: config.issue_type },
     summary: summary,
     description: description,
   };
@@ -39,7 +37,7 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
     }
   }
   const update = {};
-  if (linkedIssueKey && config.issue_link_type) {
+  if (linkedIssueKey && config.create && config.create.issue_link_type) {
     update["issuelinks"] = [
       {
         add: {
