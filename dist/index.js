@@ -61488,6 +61488,7 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
     update,
     fields,
   };
+  console.log(issueData);
   return issueData;
 };
 
