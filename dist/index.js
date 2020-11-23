@@ -61458,8 +61458,8 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
     summary: summary,
     description: description,
   };
-  if (config.fields) {
-    for (const [key, value] of Object.entries(config.fields)) {
+  if (config.create.fields) {
+    for (const [key, value] of Object.entries(config.create.fields)) {
       if (value.type === "current_time") {
         fields[key] = moment().format();
       } else if (value.type === "current_time_plus_hour") {
@@ -61475,7 +61475,7 @@ exports.createIssueData = function (summary, description, linkedIssueKey) {
       {
         add: {
           type: {
-            name: config.issue_link_type,
+            name: config.create.issue_link_type,
           },
           inwardIssue: {
             key: linkedIssueKey,
