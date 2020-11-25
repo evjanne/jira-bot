@@ -120,6 +120,7 @@ exports.resolveIssue = async function (issue) {
     }
   }
   if (context.payload.client_payload && context.payload.client_payload.fields) {
+    console.log(context.payload.client_payload.fields)
     for (const [key, value] of Object.entries(context.payload.client_payload.fields)) {
       fields[key] = value;
     }
