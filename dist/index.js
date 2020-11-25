@@ -61556,6 +61556,7 @@ exports.resolveIssue = async function (issue) {
         console.log("Use value as is")
         fields[key] = value;
       }
+      console.log(fields)
     }
   }
   if (context.payload.client_payload && context.payload.client_payload.fields) {
