@@ -61543,29 +61543,22 @@ exports.resolveIssue = async function (issue) {
   const fields = {};
   if (config.resolve.fields) {
     for (const [key, value] of Object.entries(config.resolve.fields)) {
-      console.log(`${key}: ${JSON.stringify(value)}`)
-      console.log(value.type)
-      console.log(value.from)
       if (value.type === "current_time") {
-        console.log("Type is current_time")
         fields[key] = moment().format();
       } else if (value.from) {
-        console.log(`Get from field ${value.from}`)
         fields[key] = issue.fields[value.from];
       } else {
-        console.log("Use value as is")
         fields[key] = value;
       }
-      console.log(fields)
     }
   }
   if (context.payload.client_payload && context.payload.client_payload.fields) {
-    for (const [key, value] of Object.entries(config.resolve.fields)) {
+    for (const [key, value] of Object.entries(context.payload.client_payload.fields)) {
       fields[key] = value;
     }
   }
   const resolve = { transition, fields };
-  console.log(resolve);
+  console.log(`Update ticket:\n${JSON.stringify(resolve)}`);
   try {
     await jira.transitionIssue(issue.id, resolve);
   } catch (error) {
