@@ -61543,6 +61543,7 @@ exports.resolveIssue = async function (issue) {
   const fields = {};
   if (config.resolve.fields) {
     for (const [key, value] of Object.entries(config.resolve.fields)) {
+      console.log(`${key}: ${value}`)
       if (value.type === "current_time") {
         fields[key] = moment().format();
       } else if (value.from) {
