@@ -114,10 +114,13 @@ exports.resolveIssue = async function (issue) {
       console.log(value.type)
       console.log(value.from)
       if (value.type === "current_time") {
+        console.log("Type is current_time")
         fields[key] = moment().format();
       } else if (value.from) {
+        console.log(`Get from field ${value.from}`)
         fields[key] = issue.fields[value.from];
       } else {
+        console.log("Use value as is")
         fields[key] = value;
       }
     }
